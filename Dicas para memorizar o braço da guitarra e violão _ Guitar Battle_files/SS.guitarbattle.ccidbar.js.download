@@ -1,0 +1,407 @@
+var SS = window['SS'] || {};
+SS.guitarbattle = SS.guitarbattle || {};
+SS.guitarbattle.ccidbar = (function () {
+    var cont, _user = {
+        id: "", isLogged: function () {
+            return false;
+        }
+    }, _ready = false;
+    var drop = function () {
+        var innerDrop = $('._user_drop'),
+            _cache = {n: [], f: []},
+            _len = {f: 0, n: 0},
+            notificationNs = innerDrop.find("._tab_notifications ul"),
+            notificationFs = innerDrop.find("._tab_friends ul");
+        function _img(n) {
+            var match;
+            if (n.image) {
+                match = n.image.match(/notificacoes\/(\w+)\.png$/i);
+                if (match) {
+                    return '<i class="ccid_nt_ico ccid_nt_' + match[1] + '"></i>';
+                }
+                return '<img src="' + n.image + '" />';
+            }
+            return '<i class="ccid_nt_ico ccid_nt_apr"></i>';
+        }
+        function _renderN(n) {
+            return '<li' + (n.read ? ' class="ccid_nt_read">' : '>') +
+                '<a href="' + n.url + '" data-id="' + n.id + '">' +
+                n.message +
+                '<small>' +
+                '<span data-time="' + new Date(n.updatedAt).getTime() + '">' +
+                $.timeagoCC(new Date(n.updatedAt).getTime()) +
+                '</span> no ' + n.service.name +
+                '</small>' +
+                _img(n) +
+                '</a>' +
+                '</li>';
+        }
+        function _renderF(f) {
+            return '<li data-id="' + f.id + '">' +
+                '<a' + (!f.received && f.accepted ? ' class="ccid_rq_with_msg"' : '') + ' href="/plateia/' + f.userID + '/">' +
+                '<img src="' + f.userAvatar + '" width="32" height="32"><b>' + f.userName + '</b>' +
+                (!f.received && f.accepted ? " aceitou sua solicitação de amizade." : "") +
+                '</a>' +
+                (f.received && !f.accepted ?
+                        (
+                            '<button class="ccid_rq_ignore _decline">ignorar</button>' +
+                            '<button class="ccid_rq_add ccid_con_ico _confirm">aceitar</button>'
+                        ) :
+                        ""
+                ) +
+                '</li>';
+        }
+        innerDrop
+            .on("init", function (e) {
+                // close drop
+                $("body").on("click.close_ccid_menu_user", function (e) {
+                    if (innerDrop.hasClass("on") && !$(e.target).closest("._user_drop").length) {
+                        innerDrop.trigger("close");
+                    }
+                });
+            })
+            .on("login", function () {
+                // reset. Prevent on.sync problems
+                _cache = {n: [], f: []},
+                    _len = {f: 0, n: 0},
+                    ccid
+                    // fetch initial notifications
+                        .d("notifications", function (ns, err) {
+                            if (err === null) {
+                                _cache.n = ns || [];
+                            } else {
+                                console.error(err.msg);
+                            }
+                            innerDrop.trigger("refresh");
+                        })
+                        // fetch initial friendship notifications
+                        .d("friendships", function (ns, err) {
+                            if (err === null) {
+                                _cache.f = ns.data || [];
+                            } else {
+                                console.error(err.msg);
+                            }
+                            innerDrop.trigger("refresh");
+                        })
+                        // on demand notification
+                        .d("on.notification", function (o) {
+                            var updated = false;
+                            // maybe it is just an update.
+                            for (var i = 0, l = _cache.n.length; i < l; i++) {
+                                if (_cache.n[i].id == o.id) {
+                                    _cache.n[i] = o;
+                                    updated = true;
+                                    break;
+                                }
+                            }
+                            if (!updated) {
+                                _cache.n.unshift(o);
+                            }
+                            innerDrop.trigger("refresh");
+                        })
+                        // on demand friendship
+                        .d("on.friendship", function (o) {
+                            _cache.f.unshift(o);
+                            innerDrop.trigger("refresh");
+                        })
+                ;
+            })
+            .on("open", function (e) {
+                var tab = innerDrop.addClass("on").find("._tab_item.on");
+                if (!tab.length) {
+                    tab = innerDrop.find("._tab_item:first");
+                }
+                tab.trigger("click");
+            })
+            .on("close", function (e) {
+                innerDrop.removeClass("on");
+            })
+            // change tabs
+            .on("click", "._tab_item", function (e) {
+                var tab = $(this),
+                    oldTab = innerDrop.find('._tab_item.on[data-type!="' + tab.data("type") + '"]'),
+                    len = NaN;
+                if (!tab.hasClass("on")) {
+                    innerDrop.find("._tab.on").add(oldTab).removeClass("on");
+                    tab.add(innerDrop.find("._tab_" + tab.data("type")))
+                        .addClass("on")
+                        .find("._scroll").perfectScrollbar()
+                    ;
+                }
+                if (tab.data("type") == "notifications") {
+                    if (_len.n) {
+                        ccid.d("notification.markAsSeen", function () {
+                            for (var i = 0, l = _cache.n.length; i < l; i++) {
+                                _cache.n[i].seen = true;
+                            }
+                            innerDrop.trigger("refresh");
+                        });
+                    }
+                    len = _len.f;
+                } else {
+                    if (_len.f) {
+                        ccid.d("friendship.markAsSeen", function () {
+                            for (var i = 0, l = _cache.f.length; i < l; i++) {
+                                _cache.f[i].seen = true;
+                            }
+                            innerDrop.trigger("refresh");
+                        });
+                    }
+                    len = _len.n;
+                }
+                innerDrop.trigger("update_count", len);
+                tab.find("._count").empty();
+                if (len) oldTab.find("._count").text('(' + len + ')');
+            })
+            // mark notification as read
+            .on("click", "._tab_notifications a", function (e) {
+                var a = $(this),
+                    id = a.data("id");
+                ccid.d("notification.markAsRead", function (ok, err) {
+                    if (ok) {
+                        for (var i = 0, l = _cache.n.length; i < l; i++) {
+                            if (_cache.n[i].id == id) {
+                                _cache.n[i].read = true;
+                                a.addClass("ccid_nt_read");
+                                break;
+                            }
+                        }
+                    }
+                }, {id: id});
+            })
+            // accept friendship request
+            .on("click", "._tab_friends ._confirm", function (e) {
+                var obj = $(this),
+                    cn = obj.parents("li"),
+                    id = cn.data("id");
+                ccid.d("friendship.confirm", function (ok, err) {
+                    if (ok || err.code == 404) {
+                        for (var i = 0, l = _cache.f.length; i > -1; i--) {
+                            if (_cache.f[i].id == id) {
+                                _cache.f.splice(i, 1);
+                                obj.addClass("on").prev().remove();
+                                setTimeout(function () {
+                                    cn.fadeOut(function () {
+                                        innerDrop.trigger("refresh");
+                                    });
+                                }, 2000);
+                                break;
+                            }
+                        }
+                    } else {
+                        console.error(err.msg);
+                    }
+                }, {id: id});
+                return false;
+            })
+            // decline friendship request
+            .on("click", "._tab_friends ._decline", function (e) {
+                var obj = $(this).parents("li"),
+                    id = obj.data("id");
+                ccid.d("friendship.decline", function (ok, err) {
+                    if (ok || err.code == 404) {
+                        for (var i = 0, l = _cache.f.length; i < l; i++) {
+                            if (_cache.f[i].id == id) {
+                                _cache.f.splice(i, 1);
+                                innerDrop.trigger("refresh");
+                                break;
+                            }
+                        }
+                    } else {
+                        console.error(err.msg);
+                    }
+                }, {id: id});
+                return false;
+            })
+            .on("refresh", function (e) {
+                var i, l, html = {f: '', n: ''};
+                _len = {f: 0, n: 0};
+                _cache.n.sort(function (a, b) {
+                    return new Date(b.updatedAt) - new Date(a.updatedAt)
+                });
+                for (i = 0, l = _cache.n.length; i < l; i++) {
+                    if (!_cache.n[i].seen)
+                        _len.n++;
+                    html.n += _renderN(_cache.n[i]);
+                }
+                for (i = 0, l = _cache.f.length; i < l; i++) {
+                    if (!_cache.f[i].seen)
+                        _len.f++;
+                    html.f += _renderF(_cache.f[i]);
+                }
+                if (!html.n)
+                    html.n = "<center>não há notificações.</center>";
+                if (!html.f)
+                    html.f = "<center>não há solicitações de amizade pendentes!</center>";
+                notificationNs.html(html.n);
+                notificationFs.html(html.f);
+                notificationNs.find("span[data-time]").timeagoCC(new Date());
+                innerDrop.trigger("update_count", _len.f + _len.n);
+                if (_len.f) innerDrop.find('._tab_item[data-type="friends"] i').text('(' + _len.f + ')');
+                if (_len.n) innerDrop.find('._tab_item[data-type="notifications"] i').text('(' + _len.n + ')');
+            })
+        ;
+        return innerDrop;
+    }();
+    function init() {
+        cont = $("#ccid_bar");
+        // ccid
+        ccid.d("init");
+        drop.trigger("init");
+        cont
+            .on("click", "._menu_item_login", function (e) {
+                if (!$(".ccid_login").length) {
+                    ccid.d("on.auth", function (u, _) {
+                        // let it to on.login
+                    }, {element: $(this), position: "up right"});
+                    // mustn't propagate!
+                    e.stopPropagation();
+                }
+                e.preventDefault();
+            })
+            .on("click", "._menu_item_user", function (e) {
+                if (drop.hasClass("on")) {
+                    drop.trigger("close");
+                } else {
+                    drop.trigger("open");
+                }
+                // mustn't propagate!
+                e.stopPropagation();
+                e.preventDefault();
+            })
+            // logout
+            .on("click", '[href="/#sair"]', function (e) {
+                ccid.d("logout");
+                return false;
+            })
+            //
+            .on("click", "._menu_links a", function (e) {
+                drop.removeClass("on");
+            })
+        ;
+        drop.on("update_count", function (e, count) {
+            var cnt = cont.find("._menu_item_user ._count");
+            if (count) {
+                cnt.html("<i>" + count + "</i>");
+            } else {
+                cnt.empty();
+            }
+        });
+        ccid.d("on.login", _onLogin);
+        ccid.d("get.user", function (u, e) {
+            if (!u.isLogged()) _onLogin(u, null);
+        });
+        ccid.d("on.ready", function () {
+            _ready = true;
+        });
+    }
+    function _onLogin(u, err) {
+        if (err === null) {
+            _user = u;
+            // #TODO: Multilanguage
+            if (_user.isLogged()) {
+                cont.find("._menu_links").html(
+                    '<a href="/usuario/:userId/">Meu perfil</a>'.replace(':userId', _user.id)
+                );
+                if (IS_COMBATENTE) {
+                    cont.find("._menu_links").append(
+                        '<a href="/musica/listar/">Minhas músicas</a>' +
+                        '<a href="/musica/enviar/">Enviar músicas</a>' +
+                        '<a href="/cadastro/">Editar combatente</a>'
+                    );
+                } else {
+                    cont.find("._menu_links").append(
+                        '<a href="/cadastro/">Virar combatente</a>' +
+                        '<a href="/">Novas batalhas</a>'
+                    );
+                }
+                cont.find("._menu_links").append(
+                    '<a class="_logout" href="/#sair">Sair</a>'
+                );
+                // exibe o nome/imagem na barra
+                cont.find("._menu_item_login").removeClass("on");
+                cont.find("._menu_item_user")
+                    .html(
+                        '<a href="#">' +
+                        '<img src="' + u.avatar(25) + '" alt="' + u.name + '">' +
+                        u.name +
+                        '<span class="_count"></span>' +
+                        '</a>'
+                    )
+                    .addClass("on")
+                ;
+                // inicia as notificações
+                drop.trigger("login");
+            } else {
+                cont.find("._menu_item_login").addClass("on");
+            }
+        } else {
+            console.error(err);
+        }
+    }
+    return {
+        /**
+         * Inicializa o módulo
+         */
+        init: function () {
+            return init();
+        },
+        /**
+         * Retorna o objeto do usuário, logado ou não
+         */
+        getUser: function () {
+            return _user;
+        },
+        /**
+         * Retorna <true> se o usuário estiver logado
+         */
+        isLogged: function () {
+            return _user.isLogged();
+        },
+        /**
+         * Executa callback se o usuário estiver logado, senão, exibe diálogo de login
+         *
+         * @param {function} callback: callback executada quando logado
+         * @param {object} options: {
+         *     {string|jQuery} selector: elemento onde será posicionado o diálogo de login
+         *     {string} position: posicionamento do diálogo de login ('top', 'left', 'right', 'bottom', 'up' e combinações)
+         *     {function} onClose: callback executada ao fechar o diálogo de login, logando ou não
+         * }
+         */
+        doLogged: function (callback, options) {
+            ccid.d("on.auth", callback, options);
+        },
+        /**
+         * Loga no CCID
+         *
+         * @param {string} email
+         * @param {string} password
+         * @param {function(user, error)} callback: função para tratar a resposta do login
+         */
+        doLogin: function (email, password, callback) {
+            ccid.d("auth", callback, {email: email, password: password});
+        },
+        /**
+         * Executa callback se o usuário estiver logado ou após logar
+         *
+         * @param {function} callback
+         */
+        onLogin: function (callback) {
+            ccid.d("on.login", callback);
+        },
+        /**
+         * Retorna <true> se o script da barra do CCID estiver pronto
+         */
+        isReady: function () {
+            return _ready;
+        },
+        /**
+         * Executa uma callback quando o script da barra do CCID estiver pronto
+         *
+         * @param {function} callback
+         */
+        onReady: function (callback) {
+            ccid.d("on.ready", callback);
+        }
+    }
+}());

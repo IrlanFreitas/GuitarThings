@@ -1,0 +1,555 @@
+(function (window) {
+ var SS = window['SS'] || (window['SS'] = {});
+ SS.guitarbattle = SS.guitarbattle || {};
+ // Namespace de licao
+ SS.guitarbattle.licao = (function() {
+  var
+    // CONSTANTES
+    // Path onde se encontram todos os arquivos SWF
+    _LISTA_UM
+   ,_LISTA_DOIS
+   ,_TIPO
+   ,_OFFSET
+   ,_DIFICULDADE
+   ,_TOTAL
+   ,_init = function() {
+      // Inicializa os possíveis players, na lição
+      _initPlayers();
+      // Inicializa os eventos associados à página
+      _initListeners();
+     }
+   ,_initPlayers = function() {
+    $(document).ready(function() {
+     var
+          $interfaces = $('div.jp-interface').toArray()
+         ,totInterfaces = $interfaces.length
+         ,i = 0
+         ,$interface = false
+         ,id = false
+         ,$players = $('div.jp-jplayer').toArray()
+      ,totPlayers = $players.length
+      ,$player = false
+      ,$volumes = $('b.jp-volume-b')
+      ,$playButtons = $('b.jp-play-b')
+     ;
+     for (; i < totInterfaces; ++i) {
+         $interface = $($interfaces[i]);
+         // Seta os ids p/ interfaces e playlists
+         $interface.attr('id', 'jp_interface_' + i);
+         $volumes.eq(i).attr('id', i);
+         $playButtons.eq(i).attr('id', i);
+         $interface.siblings().eq(0).attr('id', 'jp_playlist_' + i);
+     }
+     // Inicializa todos os players disponiveis
+     for (i = 0; i < totPlayers; ++i) {
+      $player = $($players[i]);
+      $player.jPlayer({
+        ready: function() {
+           $(this).jPlayer('setMedia', {
+          mp3: $(this).attr('rel')
+         });
+        }
+       ,supplied: 'mp3'
+       ,solution: 'html, flash'
+                            ,volume: 0.5
+       ,swfPath: SS.guitarbattle.consts.PATH_SWF
+       ,cssSelectorAncestor: "#jp_interface_" + i
+      })
+      .bind($.jPlayer.event.play, function() {
+       $(this).jPlayer("pauseOthers");
+      });
+      // Slider progress bar
+      $('.jp-seek-bar').slider({
+       min: 0,
+       max: 100,
+       value: 0,
+       orientation: 'horizontal',
+       slide: function(event, ui){
+        $(this).find('.jp-play-bar').css('width', ui.value + '%');
+        $('#jp_jplayer_' + $(this).find('b.jp-play-b').attr('id')).jPlayer('playHead', ui.value);
+       }
+      });
+//						SLIDER DE TESTE
+//						$('#teste_bar').slider({
+//							min: 0, max: 100, value: 50, step: 1, orientation: 'horizontal',
+//							slide: function(event, ui){ console.log(ui.value); $('#teste_slider').css('width', ui.value+'%');}
+//						});
+      // Slider do volume
+      $('.jp-volume-bar').slider({
+       min: 0,
+       max: 100,
+       value: 50,
+       orientation: 'horizontal',
+       slide: function(event, ui){
+        /**
+
+								 * Tem que setar o volume no jPlayer ANTES de mudar o width da barrinha,
+
+								 * porque se nao o proprio jPlayer soma automaticamente o width da barrinha 
+
+								 * com o volume que setou depois.
+
+								 * 
+
+								 * @author J. Macedo <jose.macedo@studiosol.com.br>
+
+								 * @author R. Augusto <romano.augusto@studiosol.com.br>
+
+								 * @since 14/09/2011
+
+								 */
+        $('#jp_jplayer_' + $(this).find('b.jp-volume-b').attr('id')).jPlayer('volume', ( parseInt(ui.value) / 100 ) ); // O volume e passado em valores de 0 a 1
+        $(this).find('.jp-volume-bar-value').css('width', ui.value + '%');
+       }
+      });
+     }
+    });
+   }
+   // Funcao que seta na inicializacao todas informações da listagem
+   ,_setListagem = function(lista_um, lista_dois, tipo, dificuldade, offset, total){
+    _LISTA_UM = lista_um;
+    _LISTA_DOIS = lista_dois;
+    _TIPO = tipo;
+    _DIFICULDADE = dificuldade;
+    _OFFSET = offset;
+    _TOTAL = total;
+    return false;
+   }
+   ,_initListeners = function() {
+    // Seta onclick nas abas de "recentes" e "mais_acessadas"
+    // mudando o tipo que é usado em _showListagem
+    $('#licoes_listagem > ul.abas > li > a').click(function() {
+     var
+      $link = $(this),
+      tipo = $link.attr('rel');
+     if ( tipo != _TIPO ){
+      _TIPO = tipo;
+      _OFFSET = 12;
+      _showListagem();
+     }
+     return false;
+    });
+    // Seta onclick no botao de "mostrar mais lições"
+    // mudando o offset de lições que é usado em _showListagem
+    $('#licoes_listagem > div.ranking > div.pag > a[rel=more]').click(function() {
+     if ( (_OFFSET + 12) < _TOTAL ){
+      _OFFSET += 12;
+     }else{
+      _OFFSET = _TOTAL;
+     }
+     _showListagem();
+     return false;
+    });
+    // Seta onclick no botao de "ver todos"
+    // mudando o offset de lições para o maximo que é usado em
+    // _showListagem
+    $('#licoes_listagem > div.ranking > div.pag > a[rel=all]').click(function() {
+     _OFFSET = _TOTAL;
+     _showListagem();
+     return false;
+    });
+    //Seta onclick nas abas de "Outras Licoes"
+    $('#licoes_recentes > ul.abas li').click(function() {
+     // Pega o elemento que esta visivel e o que é para ser mostrado
+     var
+      $link = $(this),
+      tipo = $link.attr('rel'),
+      $link_visivel = $('#licoes_recentes > ul.abas > li.on'),
+      tipo_visivel = $link_visivel.attr('rel');
+     // Esconde lista e remove classe on
+     $('#licoes_recentes > ul[rel=' + tipo_visivel + ']').hide();
+     $link_visivel.removeClass('on');
+     // Mostra lista e adiciona classe on
+     $('#licoes_recentes > ul[rel=' + tipo + ']').show();
+     $link.addClass('on');
+     return false;
+    });
+    //Seta onclick nas navegacao de Licoes
+    $('#licoes_nav > a > span[principal=true]').click(function() {
+     return false;
+    });
+    //Seta onclick nas navegacao de Licoes
+    $('#licoes_nav > a > span[principal!=true]').click(function() {
+     // Pega o elemento que esta visivel e o que é para ser mostrado
+     var
+      $link = $(this)
+      $link_clone = $link.clone(),
+      instrumento = $link.attr('rel'),
+      $link_temp = $($('#licoes_nav > a > span')[0]),
+      instrumento_old = $link_temp.attr('rel'),
+      $link_old = $($('#licoes_nav > a > span.ln_' + instrumento_old)[1]);
+     // Troca o 1o elemento que é o display do instrumento
+     $($('#licoes_nav > a > span')[0]).remove();
+     $link_clone.prependTo($('#licoes_nav > a'));
+     $link_clone.click(function() {return false;});
+     // Esconde o elemento repetido que agora é o display principal
+     $link.hide();
+     // Mostra o elemento escondido que tinha uma copia no display principal
+     $link_old.css('display', '');
+     // Esconde a navegacao que estava mostrando
+     $('#licoes_nav > nav > ul#nav_' + instrumento_old).hide();
+     // Mostra a navegacao do instrumento desejado
+     $('#licoes_nav > nav > ul#nav_' + instrumento).show();
+     return false;
+    });
+    //Seta onclick no "Envie uma lição"
+    $('#qual_patente > a.bt').bind('click', function(e) {
+     e.preventDefault();
+                 SS.ccidbar.logged(function() {
+                window.location.href = '/cadastro-colaborador/';
+              }, {
+                  element: $(this),
+                  arrow: 'top_left',
+                  position: 'right'
+              });
+                    return false;
+    });
+    var botEstudei = $('#licao_estudei a.bt:first'),
+                callbackEstudei = function(){
+                    if (!$(this).hasClass('bt_off')) {
+                     var that = this;
+                        $.ajax({
+                            url: SS.guitarbattle.consts.PATH_AJAX+'estudei_licao.php',
+                            dataType: 'json',
+                            type: 'POST',
+                            data: {
+                                id_licao: id_licao
+                            },
+                            beforeSend: function(){},
+                            error: function(){},
+                            success: function(json){
+                                if (json.status) {
+                                    var urlUsuario = '/usuario/'+SS.ccidbar.user.id+'/';
+                                    $('#licao_estudei span').html(json.msg);
+                                    $(that).addClass('bt_off').click(function(){return false;});
+                                    $('#licao_estudei ul > li > a[href="'+urlUsuario+'"]').parent().remove();
+                                    if ($('#licao_estudei ul li:first').length == 0) {
+                                     $('#licao_estudei ul').append($('<li><a title="'+json.nickname+'" href="'+urlUsuario+'"><img src="'+json.avatar+'" /></a></li>'));
+                                    } else {
+                                     $('#licao_estudei ul > li:first').before($('<li><a title="'+json.nickname+'" href="'+urlUsuario+'"><img src="'+json.avatar+'" /></a></li>'));
+                                    }
+                                    if ($('#licao_estudei ul > li').length > 8) {
+                                        $('#licao_estudei ul > li:last').remove();
+                                    }
+                                }
+                            }
+                     });
+                    }
+                    return false;
+                };
+                botEstudei.on('click', function(e) {
+     if (!botEstudei.hasClass('bt_off')) {
+                  SS.ccidbar.logged(function() {
+                 callbackEstudei.apply(botEstudei);
+               }, {
+                   element: $(this),
+                   arrow: 'top_left',
+                   position: 'right'
+               });
+     }
+                    return false;
+                });
+   }
+   ,_showListagem = function() {
+    // Valida o tipo da listagem para buscar na lista correta
+    if (_TIPO == 'mais_acessadas'){
+     var lista = _LISTA_UM;
+    }else if(_TIPO == 'recentes'){
+     var lista = _LISTA_DOIS;
+    }else if(_TIPO == 'colunistas'){
+     var lista = _LISTA_UM;
+    }
+    var html = [];
+    // Monta o elemento de cada lista
+    for ( i in lista ){
+     // Repete ate o limite da lista solicitado pelo usuario
+     if( i < _OFFSET ){
+      if(_TIPO != 'colunistas'){
+       html.push([ '<li><a href="' + lista[i]['url'] + '">',
+          '<img alt="" src="' + lista[i]['avatar'] + '" class="img" />',
+          '<strong>'].join(''));
+       if (!_DIFICULDADE){
+        html.push([' <i class="p_' + lista[i]['dificuldade'] + '" class="img" />'].join(''));
+       }
+       html.push([ ' ' + lista[i]['subtitulo'] + '</strong>',
+           '<span>' + lista[i]['nome'] + '</span>',
+           '<small>' + lista[i]['totalhits']].join(''));
+       if (lista[i]['totalhits'] !== '1'){
+        html.push([ ' exibições</small>',
+          '</a></li>'].join(''));
+       }else{
+        html.push([ ' exibição</small>',
+          '</a></li>'].join(''));
+       }
+      }else{
+       html.push([ '<li><a href="' + lista[i]['url'] + '">',
+          '<img alt="" src="' + lista[i]['avatar'] + '" class="img" />',
+          '<strong>'].join(''));
+       html.push([ ' ' + lista[i]['nome'] + '</strong>',
+           '<span>' + lista[i]['tot_licoes']].join(''));
+       if (lista[i]['tot_licoes'] !== '1'){
+        html.push([ ' lições</span>',
+           '<small>' + lista[i]['totalhits']].join(''));
+       }else{
+        html.push([ ' lição</span>',
+           '<small>' + lista[i]['totalhits']].join(''));
+       }
+       if (lista[i]['totalhits'] !== '1'){
+        html.push([ ' acessos</small>',
+          '</a></li>'].join(''));
+       }else{
+        html.push([ ' acesso</small>',
+          '</a></li>'].join(''));
+       }
+      }
+     }else{
+      break;
+     }
+    }
+    $('#licoes_listagem > div.ranking > ol').html(html.join(''));
+    //Troca as classes das abas
+    if (_TIPO == 'mais_acessadas'){
+     if ($('#licoes_listagem > ul.abas > li > a[rel=mais_acessadas]')) {
+      $('#licoes_listagem > ul.abas > li > a[rel=mais_acessadas]').parent().addClass('on');
+      $('#licoes_listagem > ul.abas > li > a[rel=recentes]').parent().removeClass('on');
+     }
+    }else{
+     $('#licoes_listagem > ul.abas > li > a[rel=mais_acessadas]').parent().removeClass('on');
+     $('#licoes_listagem > ul.abas > li > a[rel=recentes]').parent().addClass('on');
+    }
+    //Seta no html o tanto da lista exibida
+    var texto = 'Exibindo ';
+    if ( _OFFSET <= _TOTAL ){
+     texto += _OFFSET.toString() + ' de ' + _TOTAL.toString();
+    }else{
+     texto += _TOTAL.toString() + ' de ' + _TOTAL.toString();
+    }
+    $('#licoes_listagem > div.ranking > div.pag > a.off').html(texto);
+    return false;
+   }
+  ; // Fim da declaração var única
+  return {
+   // Pode receber argumentos: 1º: path dos swf's
+   init: function() {
+    _init();
+   },
+   setListagem: function(a,b,c,d,e,f) {
+    _setListagem(a,b,c,d,e,f);
+   }
+  }
+ }());
+}(window));
+(function(window, $) {
+ /**
+
+	 * Variavel de controle para evitar multiplos click no botao de enviar email
+
+	 * 
+
+	 * @author J. Macedo <jose.macedo@studiosol.com.br>
+
+	 * @since  20/09/2011
+
+	 */
+ var ENVIANDO_EMAIL = false;
+ // verificação para caso de ser envio de batalha ou uma lição
+ var html_texto = 'Olá! Estou te enviando essa lição!\nUm abraço!';
+ var tipo_tela = 1;
+ if(/batalha\/[0-9]+/.test(location.href)){ // tela de batalha
+  html_texto = 'Olá! Estou te enviando essa batalha!\nUm abraço!';
+  tipo_tela = 2;
+ }else if(/usuario\/[0-9]+/.test(location.href)){ // tela de usuario
+  html_texto = 'Olá! Estou te enviando esse usuário!\nUm abraço!';
+  tipo_tela = 3;
+ }else if(/musica\/[0-9]+/.test(location.href)){ // tela de usuario
+  html_texto = 'Olá! Estou te enviando esta música!\nUm abraço!';
+  tipo_tela = 4;
+ }
+ var _emails_envio = [],
+  html = [],
+  regex_email = /([A-Z0-9\.\_\%\+\-]+@[A-Z0-9\.\-]+\.[A-Z]{2,6})/i;
+ html.push(
+  '<form id="frm_send_eml">',
+   '<label for="txt_sender_name">De</label>',
+   '<input class="input', (SS.ccidbar.isLogged() ? ' ok' : '') ,'" type="text" name="sender_name" id="txt_sender_name" placeholder="Nome" value="', (SS.ccidbar.isLogged() ? SS.ccidbar.user.nickname : '') ,'" /> ',
+   '<input type="text" name="sender_mail"  id="txt_sender_email" ', (SS.ccidbar.isLogged() ? 'value="'+SS.ccidbar.user.email+'" class="input ok"' : 'placeholder="E-mail" value="E-mail" class="input"'),' />',
+   '<label for="txt_eml">Mensagem</label>',
+   '<textarea name="texto" id="txt_eml">'+html_texto+'</textarea>',
+   '<label for="txt_dest_email">Digite os e-mails para envio</label>',
+   '<div id="eml_wrap_emails" class="input">',
+    '<input type="text" name="dest_email" id="txt_dest_email" />',
+   '</div>',
+   '<small>Digite acima os emails separados por vírgula ou espaço</small>',
+   '<button type="submit" class="bt bt_v" id="btn_send_eml">Enviar email</button>',
+  '</form>'
+ );
+ // Placeholder dos inputs			
+ $('#frm_send_eml input[placeholder]')
+  .live('focus', function(){
+   var $input = $(this);
+   if($input.val() == $input.attr('placeholder')){
+    $input.val('');
+   }
+   $input.addClass('ok');
+   $('label[for='+$input.attr('id')+']').removeClass('erro');
+  })
+  .live('blur', function(){
+   var $input = $(this);
+   if($input.val() == ''){
+    $input.val($input.attr('placeholder'));
+   }
+   if($input.val() == $input.attr('placeholder')){
+    $input.removeClass('ok');
+   }
+  });
+ // Classe focus no div dos e-mails
+ $('#txt_dest_email')
+  .live('focus', function(){
+   $('#eml_wrap_emails').addClass('focus');
+  })
+  .live('blur', function(){
+   $('#eml_wrap_emails').removeClass('focus');
+  });
+ // Simulando focus no input ao clicar na div
+ $('#eml_wrap_emails').live('click', function(){
+  $('label[for=txt_dest_email]').removeClass('erro');
+  $('#txt_dest_email').focus();
+ });
+ // Substituição dos e-mails por spans
+ $('#txt_dest_email').live('keyup blur', function(evt){
+  var $this = $(this),
+   texto = $this.val(),
+   last_chr = texto.charAt(texto.length - 1);
+  if(evt.type == 'focusout' || evt.type == 'blur'){
+   if(texto.length > 0){
+    $this.addClass('ok');
+   }else{
+    $this.removeClass('ok');
+   }
+  }
+  // Backspace: apaga o ultimo email digitado
+  if(texto.length == 0 && (evt.keyCode && evt.keyCode == 8)){
+   _emails_envio.pop();
+   texto = $.trim($('#eml_wrap_emails span:last').text());
+   $('#eml_wrap_emails span:last').remove();
+   $this.css('width', (texto.length - 1) * 10).val(texto.substring(0, texto.length - 1));
+   return;
+  }
+  if(texto.length > 2)
+   $this.css('width', texto.length * 10);
+  if(last_chr == ',' || last_chr == ' '){
+   var match = regex_email.exec(texto);
+   if(match){
+    if($.inArray(match[1], _emails_envio, true) == -1){
+     _emails_envio.push(match[1]);
+    }
+    $this.before('<span>'+match[1]+' <i></i></span> ').val('');
+    $this.css('width', '20px');
+   }
+  }
+ });
+ // "X" para remover e-mails já digitados
+ $('#eml_wrap_emails span > i').live('click', function(){
+  var $span = $(this).parent(),
+   email = $.trim($span.text());
+  $span.fadeOut('fast', function(){
+   for(var i = 0, max = _emails_envio.length; i < max; i++){
+    if(email == _emails_envio[i]){
+     _emails_envio.splice(i, 1);
+    }
+   }
+   $span.remove();
+  });
+  return false;
+ });
+ /**
+
+	 * Botao de envio de e-mail
+
+	 * 
+
+	 * @author  (autor original) ?
+
+	 * @author  J. Macedo <jose.macedo@studiosol.com.br>
+
+	 * @since   -
+
+	 * @version 20/09/2011 - J. Macedo <jose.macedo@studiosol.com.br>
+
+	 */
+ $('#frm_send_eml').live('submit', function(){
+  if ( ENVIANDO_EMAIL ){ return false; }
+  if ( !$('#txt_sender_name').val() || $('#txt_sender_name').val().toLowerCase() == 'nome' ){
+   $('label[for=txt_sender_name]').addClass('erro').text('Digite seu nome');
+  }else{
+   $('label[for=txt_sender_name]').removeClass('erro').text('De');
+  }
+  if ( !regex_email.exec($('#txt_sender_email').val()) ){
+   $('label[for=txt_sender_email]').addClass('erro').css('display', 'block');
+  }else{
+   $('label[for=txt_sender_email]').removeClass('erro').css('display', 'none');
+  }
+  var email = $('#txt_dest_email').val();
+  if ( email && regex_email.exec(email) ){
+   if ( SS.util.array.search(email, _emails_envio, true) == -1 ){
+    _emails_envio.push(email);
+   }
+   $('#txt_dest_email').before('<span>'+email+' <i></i></span>').val('');
+   $('label[for=txt_dest_email]').removeClass('erro');
+  }else if ( email != '' || $('#eml_wrap_emails span').length == 0 ){
+   $('label[for=txt_dest_email]').addClass('erro').text('Digite o email corretamente');
+  }
+  if ( $('label.erro').length > 0 ){ return false; }
+  $.ajax({
+   url: SS.guitarbattle.consts.PATH_AJAX+'envia_email.php',
+   type: 'POST',
+   data: {
+    url : location.href,
+    sender_name : $('#txt_sender_name').val(),
+    sender_email : $('#txt_sender_email').val(),
+    texto : $('#txt_eml').val(),
+    dest_email : _emails_envio,
+    tipo_tela : tipo_tela
+   },
+   dataType: 'json',
+   beforeSend: function(){
+    $('#btn_send_eml').html('Enviando...');
+    SS.util.addGifLoading($('#frm_send_eml'));
+    ENVIANDO_EMAIL = true;
+   },
+   success: function(data){
+    $("#frm_send_eml").hide();
+    $('#mod_email').append('<div id="mod_email_enviado" style="position: relative; top: 0px"><img src="'+SS.guitarbattle.consts.PATH_STATIC+'img/enviado.gif" /><strong>Enviado!</strong><a href="#" id="eml_envia_outros">Enviar para outros amigos</a></div>');
+    SS.util.removeGifLoading($('#frm_send_eml'));
+    $('#btn_send_eml').html('Enviar email');
+   },
+   complete: function(){
+    ENVIANDO_EMAIL = false;
+   }
+  });
+  return false;
+ });
+ $('#eml_envia_outros').live('click', function(){
+  $("#frm_send_eml").show();
+  $('#eml_wrap_emails span, #mod_email_enviado').remove();
+  $('#eml_wrap_emails input').val('').width('20px');
+  $('#txt_eml').val(html_texto);
+  return false;
+ });
+ $(document).ready(function(){
+  // Iniciando balão
+  $('#share_email').SSBigBalao({
+   id: 'mod_email',
+   title: 'Enviar para um amigo',
+   effect: 'fade',
+   closeOnClickout: false,
+   html: html.join(''),
+   afterClose: function(){
+    $("#frm_send_eml").show();
+    $('#eml_wrap_emails span, #mod_email_enviado').remove();
+    $('#eml_wrap_emails input').val('').width('20px');
+    $('#txt_eml').val(html_texto);
+   }
+  });
+ });
+})(window, jQuery);

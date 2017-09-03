@@ -1,0 +1,3343 @@
+/**********************************************************************************
+		FUNÇÕES E VARIAVEIS GLOBAIS
+**********************************************************************************/
+(function(window, $) {
+ // Namespace global SS
+ window['SS'] = window['SS'] || {};
+ window['gC'] = function(v) {
+  var dc = document.cookie,
+   px = v + "=",
+   iN = dc.indexOf("; " + px);
+  if(iN == -1){
+   iN = dc.indexOf(px);
+   if(iN != 0)
+    return null;
+  }else
+   iN += 2;
+  var end = dc.indexOf(";", iN);
+  if(end == -1)
+   end = dc.length;
+  return unescape(dc.substring(iN + px.length, end));
+ };
+ //Seta cookie
+ window['sC'] = function(name, value, expires, path, domain){
+     var date;
+     if(typeof(expires) == 'number'){
+         date = new Date();
+         date.setTime(date.getTime() + (parseInt(expires) * 24 * 60 * 60 * 1000));
+     } else{
+      date = expires;
+     }
+     expires = ';expires='+date.toUTCString();
+     document.cookie = name+'='+encodeURIComponent(value)+expires+';path='+path+';domain='+domain;
+ };
+ window['setClickOut'] = function(elem, callback){
+  typeof elem == 'string' && (elem = $(elem));
+  typeof callback != 'function' && (callback = function(){});
+  $(document).bind('click.'+elem.attr('id'), function(evt){
+   (elem.is(':visible') && !elem.has($(evt.target)).length) && ($(document).unbind('click.'+elem.attr('id')) && callback(evt));
+  });
+ };
+ window['valida_cpf'] = function(cpf){
+  var numeros, digitos, soma, i, resultado, digitos_iguais;
+  cpf = cpf+"";
+     digitos_iguais = 1;
+     if (cpf.length < 11){
+      return false;
+     }
+     for(i = 0; i < cpf.length - 1; i++){
+   if(cpf.charAt(i) != cpf.charAt(i + 1)){
+    digitos_iguais = 0;
+    break;
+   }
+  }
+     if(!digitos_iguais){
+         numeros = cpf.substring(0, 9);
+         digitos = cpf.substring(9);
+         soma = 0;
+         for(i = 10; i > 1; i--){
+    soma += numeros.charAt(10 - i) * i;
+         }
+         resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+         if (resultado != digitos.charAt(0))
+             return false;
+         numeros = cpf.substring(0, 10);
+         soma = 0;
+         for (i = 11; i > 1; i--)
+             soma += numeros.charAt(11 - i) * i;
+         resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+         if (resultado != digitos.charAt(1))
+             return false;
+         return true;
+     }
+     return false;
+ };
+ window['calcula_idade'] = function(dia_nasc, mes_nasc, ano_nasc){
+  var hoje = new Date(),
+   mes = hoje.getMonth() + 1;
+  idade = hoje.getFullYear() - ano_nasc;
+  if(mes < mes_nasc){
+      idade--;
+  }else if(mes == mes_nasc){
+   if(hoje.getDate() < dia_nasc){
+       idade--;
+      }
+  }
+  return idade;
+ };
+ window['stripslashes'] = function(str) {
+  str = str.replace(/\\'/g,'\'');
+  str = str.replace(/\\"/g,'"');
+  str = str.replace(/\\\\/g,'\\');
+  str = str.replace(/\\0/g,'\0');
+  return str;
+ };
+ window['replaceAll'] = function(str, de, para){
+     var pos = str.indexOf(de);
+     while (pos > -1){
+   str = str.replace(de, para);
+   pos = str.indexOf(de);
+  }
+     return (str);
+ }
+ window['isCombatente'] = function() {
+  var flag = gC('gb_combatente');
+  return flag !== null && parseInt(flag) > 0;
+ };
+}(window, jQuery));
+$(function(){
+ var ONE_VIEW = {};
+    // lista de callbacks a serem executadas quando login é efetuado
+    window.onLoginCallback = $.Callbacks();
+    SS.guitarbattle.ccidbar.onLogin = function() {
+        window.onLoginCallback.fire.apply(window, arguments);
+    };
+ // Evita que links com tralha sejam executados
+ $('a[href="#"]').click(function(event){
+  event.preventDefault();
+ });
+ /**
+     * Abas do destaque de batalha.
+     * Controla as requisições AJAX para busca de dados e cache HTML
+     *
+     * @author Pedro Chaves
+     * @since 11/08/2011
+     */
+    $('#hd_batalhas li, #hd_filtro a').bind('click', function(){
+     var $this = $(this),
+      instrumento = '',
+      tipo = '',
+      key = '';
+     if($this.hasClass('on')){
+      return false;
+     }
+     $this.siblings().removeClass('on');
+     $this.addClass('on');
+     instrumento = $('#hd_batalhas li.on a').attr('rel');
+     tipo = $('#hd_filtro a.on').attr('rel');
+     key = 'batalhas_'+instrumento+'_'+tipo;
+     if(!SS.cache.get('index', key)){
+      $.ajax({
+          url: SS.guitarbattle.consts.PATH_AJAX+'box_batalhas.php',
+          dataType: 'html',
+          type: 'GET',
+          data: {
+           instrumento: instrumento,
+           tipo: tipo
+          },
+          success: function(html){
+           SS.cache.set('index', key, html);
+           html = html === '' ? '<ul id="hd_lista"><li>Nenhuma batalha encontrada</li></ul>' : html;
+           $('#hd_lista').html(html);
+          }
+         });
+     }else{
+      $('#hd_lista').html(SS.cache.get('index', key));
+     }
+     return false;
+    });
+    /**
+     * Aba radio no menu, abre balão de modal
+     *
+     * @author Cícero Verneck Corrêa
+     * @since 06/09/2011
+     * @author Victor Hugo (submit para página de música com playlist)
+     * @since 22/09/2011
+     */
+    $('#nav_radio').bind('click.radio', function(e){
+     if($('#modal_radio').length == 0){
+      $('body').append(
+       ['<div class="modal" id="modal_radio" style="display:block;margin-left:-225px">'
+    , '<form action="/ajax/radio_play.php" method="GET">'
+    , '<fieldset>'
+    , '<legend>Instrumento:</legend>'
+    , '<label><input type="radio" name="instr" value="0" checked="checked" /> Todos</label>'
+    , '<label><input type="radio" name="instr" value="1" /> Guitarra</label>'
+    , '<label><input type="radio" name="instr" value="2" /> Violão</label>'
+    , '<label><input type="radio" name="instr" value="3" /> Baixo</label>'
+    , '</fieldset>'
+    , '<fieldset>'
+    , '<legend>Ordenar por:</legend>'
+    , '<label><input type="radio" name="ord" value="1" checked="checked" /> Mais baixadas</label>'
+    , '<label><input type="radio" name="ord" value="2" /> Maior média</label>'
+    , '<label><input type="radio" name="ord" value="3" /> Maior pontuação</label>'
+    , '<label><input type="radio" name="ord" value="4" /> Mais novas</label>'
+    , '<label><input type="radio" name="ord" value="5" /> Randômico</label>'
+    , '</fieldset>'
+    , '<fieldset>'
+    , '<legend>Pontua&ccedil;&atilde;o</legend>'
+    , '<label><input type="radio" name="pm" value="0" checked="checked" /> Tanto faz</label>'
+    , '<label><input type="radio" name="pm" value="1" /> 1</label>'
+    , '<label><input type="radio" name="pm" value="2" /> 2</label>'
+    , '<label><input type="radio" name="pm" value="3" /> 3</label>'
+    , '<label><input type="radio" name="pm" value="4" /> 4</label>'
+    , '<label><input type="radio" name="pm" value="5" /> 5</label>'
+    , '</fieldset>'
+    , '<span><a href="#" id="radio_submit" class="bt bt_v">Criar playlist</a></span>'
+    , '</form>'
+    , '<a href="#" class="modal_fechar">fechar</a>'
+    , '<i class="modal_seta top"></i>'
+    ,'</div>'].join('')
+      );
+      $('#modal_radio .modal_fechar').bind('click.radio',function(e){
+       $('#modal_radio').fadeOut('fast');
+       return false;
+      });
+      $('#modal_radio #radio_submit').bind('click.radio',function(e){
+       var querystring = $('#modal_radio form').serializeArray(),
+        music = '/musica/1/',
+        isRadio = false;
+       var radioHash = '#radio-'+querystring[0].value+'-'+querystring[1].value+'-'+querystring[2].value+'/';
+       if(window.location.toString().indexOf('/musica/')!=-1){
+        window.location.hash = radioHash;
+        window.location.reload();
+        return false;
+       }
+       if(window.location.hash && (window.location.hash+'').indexOf('radio')!=-1)
+        isRadio = true;
+       window.location = music+radioHash;
+    if(isRadio)
+     window.location.reload();
+       $('#modal_radio').fadeOut('fast');
+       return false;
+      });
+     }else{
+      if($('#modal_radio').is(':visible')){
+       $('#modal_radio').fadeOut('fast');
+      }else{
+       $('#modal_radio').fadeIn('fast');
+      }
+     }
+     return false;
+    });
+ /**
+	 * Link do GBTV no topo
+	 * @author Victor Hugo
+	 * @since 23/09/2011
+	 */
+ $('#nav_gbtv').bind('click',function(){
+  var music = '/musica/1/',
+   reload = false,
+   $liGbtvHome = $('#gbtv_wrap ul li:first a');
+  if($liGbtvHome.length>0)
+      music = $liGbtvHome.attr('href')
+     else if(window.location.toString().indexOf('/musica/')!=-1){
+      window.location.hash = '#gbtv';
+      reload = true;
+     }
+     if(reload){
+      window.location.reload();
+     }else
+      window.location = music+'#gbtv';
+  return false;
+ });
+ $('#_gb_nao_cadastrado').bind('click', function(e) {
+        e.preventDefault();
+        var self = this;
+        SS.ccidbar.logged(null, {
+            element: $(self),
+            arrow: 'right_top',
+            position: 'bottom'
+        });
+        return false;
+    });
+    /**
+     * Select de estado/cidade do box de professores
+     * Ativado no onChange, busca a lista de cidades do estado escolhido
+     *
+     * @author Pedro Chaves
+     * @since 11/08/2011
+     */
+    $('#gb_select_estados').bind('change', function(){
+     var estado = $(this).val(),
+      key = 'cidades_'+estado;
+     if(!SS.cache.get('index', key)){
+      $.ajax({
+       url: SS.guitarbattle.consts.PATH_AJAX+'index_cidades.php',
+       dataType: 'html',
+       type: 'GET',
+       data: {
+        estado: estado
+       },
+       beforeSend: function(){
+        $('#gb_select_cidades').html('<option value="-1">Aguarde...</option>');
+       },
+       error: function(){
+        $('#gb_select_cidades').html(SS.cache.get('index', 'cidades_sp'));
+       },
+       success: function(html){
+        SS.cache.set('index', key, html);
+        $('#gb_select_cidades').html(html);
+       }
+      });
+     }else{
+      $('#gb_select_cidades').html(SS.cache.get('index', key));
+     }
+    });
+    /**
+     * Evitando que o formulário do box de professores seja submetido
+     *
+     * @author Pedro Chaves
+     * @since 11/08/2011
+     */
+    $('#frm_busca_professores').bind('submit', function(event){
+     event.preventDefault();
+    });
+    /**
+     * Botão de busca de professores
+     *
+     * @author Pedro Chaves
+     * @since 12/08/2011
+     */
+    $('#btn_busca_professores').bind('click', function(event){
+     var $this = $(this),
+      estado = $('#gb_select_estados').val(),
+      cidade = $('#gb_select_cidades').val(),
+      inst = $('#bp_resultado .abas_bg li.on a').attr('rel');
+      key = 'prof_' + estado + '_' + cidade;
+     if(!SS.cache.get('index', key)){
+      $.ajax({
+          url: SS.guitarbattle.consts.PATH_AJAX+'index_professores.php',
+          dataType: 'json',
+          type: 'GET',
+          data: {
+           estado: estado,
+           cidade: cidade
+          },
+          success: function(json){
+           $('#bp_lista').html(json[inst]).data('gb_professores', json);
+           SS.cache.set('index', key, json);
+          }
+         });
+     }else{
+      $('#bp_lista').html(SS.cache.get('index', key)[inst]).data('gb_professores', SS.cache.get('index', key));
+     }
+     return false;
+    });
+    /**
+     * Controle dos botões guitarra/baixo da busca de professores
+     *
+     * @author Pedro Chaves
+     * @since 12/08/2011
+     */
+    $('#bp_resultado .abas_bg li a').bind('click', function(){
+     var $this = $(this),
+      json = $('#bp_lista').data('gb_professores'),
+      cidade = $('#gb_select_cidades').val(),
+      inst = $this.attr('rel');
+     $this.parent().addClass('on').siblings().removeClass('on');
+     if(!json){
+      $('#btn_busca_professores').trigger('click');
+     }else{
+      $('#bp_lista').html(json[inst]);
+     }
+     return false;
+    });
+    /**
+     * Retorna o HTML da listagem de professores
+     *
+     * @param json	 Lista dos professores vinda do AJAX ou cache JS
+     * @param cidade Cidade dos professores (0 = todos)
+     * @param inst   Instrumento que será exibido [guitarra, baixo]
+     *
+     * @author Pedro Chaves
+     * @since 12/08/2011
+     */
+    var _htmlConteudoProfessores = function(json, cidade, inst){
+     var html = [],
+   i = 0,
+   j = 0,
+   id_usuario = 0,
+   professor = {};
+     if(!json[inst] || json[inst].length == 0){
+      return '<li><a href="#" onclick="return false" class="professor_not_found"><strong>Nenhum professor foi encontrado.</strong></a></li>';
+     }
+     if(cidade == 0){
+   for(i in json[inst]){
+    for(j = json[inst][i].length - 1; j >= 0; j--){
+     professor = json[inst][i][j];
+     html.push(
+      '<li><a href="/usuario/', professor['user_id'], '/">',
+       '<strong>', professor['apelido'], '</strong>',
+       '<span>', professor['experiencia'].substr(0, 90), (professor['experiencia'].length < 90 ? '' : '...'), '</span>',
+       '<img src="/avatar/', professor['user_id'], '.jpg" alt="">',
+      '</a></li>'
+     );
+    }
+   }
+  }else{
+   for(j = json[inst].length - 1; j >= 0; j--){
+    professor = json[inst][j];
+    html.push(
+     '<li><a href="/usuario/', professor['user_id'], '/">',
+      '<strong>', professor['apelido'], '</strong>',
+      '<span>', professor['experiencia'].substr(0, 90), (professor['experiencia'].length < 90 ? '' : '...'), '</span>',
+      '<img src="/avatar/', professor['user_id'], '.jpg" alt="">',
+     '</a></li>'
+    );
+   }
+  }
+     return html.join('');
+    };
+ //NIG
+ $('#bannertopo .nig').mouseover(function(){
+        $(".bannertopo_hover").html("<a target='_blank' rel='nofollow' href='/contacliques/3/'><img src='"+SS.guitarbattle.consts.PATH_STATIC+"img/banner_nig.gif?v=3' width='728' height='90' alt='' /></a>");
+        $(".bannertopo_hover").css("display","block");
+        clearTimeout(window.tmbann);
+        $('.bannertopo_hover').bind('mouseover.nig', function () {
+            $(".bannertopo_hover").css("display","block");
+            $("#bannertopo .nig").css("background-position","-291px -91px");
+        }).bind('mouseout.nig', function () {
+            $(".bannertopo_hover").css("display","none");
+            $("#bannertopo .nig").removeAttr("style");
+            $('.bannertopo_hover').unbind('.nig');
+        });
+    }).mouseout(function(){
+      $(".bannertopo_hover").css("display","none");
+    });
+    window.onLoginCallback.add(function () {
+        var pages = /cadastro|musica\/listar|musica\/enviar/i,
+            pathname = location.pathname;
+        if (pages.test(pathname)) {
+            if (SS.ccidbar.isCCIDAccount()) {
+                location.reload();
+            } else if((/cadastro/i).test(pathname)) {
+                openSyncModal();
+            }
+        }
+    });
+    window.openSyncModal = function () {
+        SS.ccidbar.openSyncModal(function(){
+            location.href = "/cadastro/";
+        });
+    };
+    $('#header_participar > a').on('click', function (e) {
+        var href = this.href;
+        SS.ccidbar.logged(function() {
+            window.location.href = href;
+        }, {
+            element: $('#header_participar > a'),
+            arrow: 'right_top',
+            position: 'bottom'
+        });
+        return false;
+    });
+    $(document).ready(function(){
+        if (window.showSyncModal && !SS.ccidbar.isCCIDAccount()) {
+            openSyncModal();
+        }
+    });
+});
+// SS.guitarbattle.consts
+(function(window) {
+ var SS = window['SS'] || (window['SS'] = {})
+  ;
+  var PATH_STATIC = '/static/';
+ var URL_UPLOADFILE = 'http://akamai.sscdn.co/gcs/guitarbattle/',
+  URL_UPLOAD_IMAGE = 'http://akamai.sscdn.co/tb/guitarbattle/';
+ SS.guitarbattle = SS.guitarbattle || {};
+ SS.guitarbattle.consts = {
+  PATH_STATIC: PATH_STATIC,
+  PATH_AVATAR: 'http://akamai.sscdn.co/cifraclub/',
+  PATH_SWF: PATH_STATIC + 'swf/',
+  PATH_AJAX: '/ajax/',
+  PATH_PROMO_LANCAMENTO: '/lancamento/',
+  PATH_MP3: URL_UPLOADFILE + 'mp3/',
+  STATIC_AVATAR: URL_UPLOAD_IMAGE + 'avatar/'
+ };
+}(window));
+// SSBigBalao
+(function(window, jQuery){
+ /**
+	 * Plugin de jQuery para manipular os balões padrão tamanho grande, como o do afinador e do dicionário
+	 * 
+	 * @author Pedro Chaves
+	 * @since 15/03/2011
+	 * @final 20/07/2011
+	 * @version 1.1
+	 */
+ $.SSBigBalao = function(options){
+  options.appendOnClick = false;
+  $.fn.SSBigBalao(options).show();
+ };
+ $.fn.SSBigBalao = function(op){
+  var _defaults = {
+    id: 'mod_big', // ID do balão que será criado
+    title: '', // Título do balão
+    html: [], // HTML interno do balão
+    effect: 'fade', // Efeito usado para exibir/fechar o balão [fade, slide, none]
+    icon: false, // Define se o título possui ícone ou não
+    appendOnClick: true, // Define se o balão deve ser exibido no click ou na inicialização do plugin 
+    closeOnClickout: true, // Define se o balão deve ser fechado ao clicar fora dele
+    removeOnClose: false, // Define se o balão deve ser removido do DOM quando for removido pelo usuário 
+    draggable: false, // TODO: Opção ainda não válida. Mas vai que passa a ser?
+    app: false, // TODO: Futura ideia do Célio. Só preparando
+    beforeOpen: function(){}, // Callback a ser executada antes de abrir o balão
+    afterOpen: function(){}, // Callback a ser executada depois de abrir o balão
+    beforeClose: function(){}, // Callback a ser executada antes de fechar o balão
+    afterClose: function(){}, // Callback a ser executada deopis de fechar o balão
+    useToggle: true // TODO: Define se vai fazer o toggle no click do balão, ou não (substituir HTML)
+   },
+   _options = _defaults,
+   _big_balao = {},
+   _html = [];
+  /**
+		 * Dá append do balão no corpo da página e seta o evento de fechar o balão
+		 */
+  var _append_balao = function(){
+   if($('#'+_options.id).length > 0){
+    return false;
+   }
+   _big_balao.appendTo('body');
+   _big_balao.find('a.modal_fechar').unbind('click.ssbb').bind('click.ssbb', function(){
+    if(typeof _options.beforeClose == 'function'){
+     _options.beforeClose(_big_balao);
+    }
+    if(_options.effect == 'fade'){
+     _big_balao.fadeOut('fast', function(){
+      _options.afterClose(_big_balao);
+      if(_options.removeOnClose){
+       _big_balao.remove();
+      }
+     });
+    }else if(_options.effect == 'slide'){
+     _big_balao.slideUp('fast', function(){
+      _options.afterClose(_big_balao);
+      if(_options.removeOnClose){
+       _big_balao.remove();
+      }
+     });
+    }else{
+     _big_balao.hide('normal', function(){
+      _options.afterClose(_big_balao);
+      if(_options.removeOnClose){
+       _big_balao.remove();
+      }
+     });
+    }
+    return false;
+   });
+  };
+  var _get_posicao = function(){
+   var left, top, $w;
+   $w = $(window);
+   left = parseInt($w.width() / 2) - parseInt(_big_balao.width() / 2);
+   top = parseInt($w.height() / 2) - parseInt(_big_balao.height() / 2) + $w.scrollTop();
+   return {
+    'top': top,
+    'left': left
+   };
+  };
+  /**
+		 * Abre ou fecha o balão dependendo do seu estado, posicionando no meio da tela
+		 */
+  var _toggle_balao = function(){
+   var ocss = {};
+   if(_big_balao.is(':visible')){
+    _big_balao.find('a.modal_fechar').trigger('click');
+    return false;
+   }
+   // Se o balão ainda não existe, cria
+   if(_options.appendOnClick === true){
+    _append_balao();
+   }
+   // Executa a callback beforeOpen
+   if(typeof _options.beforeOpen == 'function'){
+    _options.beforeOpen(_big_balao);
+   }
+   ocss = $.extend({
+    'margin-left': '0px'
+   }, _get_posicao());
+   _big_balao.css(ocss);
+   // Abre o balão com o efeito desejado, executando a callback se necessário
+   if(_options.effect == 'fade'){
+    _big_balao.fadeIn('fast', function(){
+     _options.afterOpen(_big_balao);
+    });
+   }else if(_options.effect == 'slide'){
+    _big_balao.slideDown('fast', function(){
+     _options.afterOpen(_big_balao);
+    });
+   }else{
+    _big_balao.show('normal', function(){
+     _options.afterOpen(_big_balao);
+    });
+   }
+   // Fechar ao clicar ESC
+   $(window).unbind('keyup.ssbb_'+_options.id).bind('keyup.ssbb_'+_options.id, function(evt){
+    if(evt.keyCode && evt.keyCode == 27){
+     _big_balao.find('a.modal_fechar').trigger('click');
+    }
+   });
+   // Seta o clickOut
+   if(_options.closeOnClickout === true){
+    setClickOut(_big_balao, function(){
+     _big_balao.find('a.modal_fechar').trigger('click');
+    });
+   }
+   return false;
+  };
+  // Verificando se o parâmetro de inicialização é um objeto válido
+  if(typeof op != 'object'){
+   throw new Error('SSBigBalao >> Opções inválidas! Deve ser um objeto. Passado '+(typeof options));
+  }
+  // Mesclando as opções passadas com os defaults
+  _options = $.extend(_defaults, op);
+  // Se o HTML passado for um array, transforma em string
+  if($.isArray(_options.html)){
+   _options.html = _options.html.join('');
+  }
+  // Validando callbacks
+  if(typeof _options.afterClose != 'function'){
+   _options.afterClose = function(){};
+  }
+  if(typeof _options.afterOpen != 'function'){
+   _options.afterOpen = function(){};
+  }
+  if(typeof _options.beforeClose != 'function'){
+   _options.beforeClose = function(){};
+  }
+  if(typeof _options.beforeOpen != 'function'){
+   _options.beforeOpen = function(){};
+  }
+  // Adiciona o HTML geral numa variável
+  _html.push(
+   '<div style="display:none; z-index:10" class="modal" id="', _options.id, '">',
+    (_options.title.length > 0 ? '<strong class="modal_titulo">'+(_options.icon ? '<i></i>' : '') + _options.title + '</strong>' : ''),
+    _options.html,
+    '<a class="modal_fechar" href="#">fechar</a>',
+   '</div>'
+  );
+  // Cria o objeto jQuery do balão se necessário. Se objeto já existe
+  if ( $('body').find('#' + _options.id).length > 0 ){
+   _big_balao = $('#' + _options.id);
+  }else{
+   _big_balao = $(_html.join(''));
+  }
+  // Criando o objeto caso não seja necessário
+  if(_options.appendOnClick === false){
+   _append_balao();
+  }
+  // Reposicionando o balao ao redimensionar a tela
+  $(window).bind({
+   'resize.ssbb': function(evt){
+    _big_balao.css(
+     $.extend({
+      'margin-left': '0px'
+     }, _get_posicao())
+    );
+   }
+  });
+  // Bind nos links que deverão abrir o balão
+  this.each(function(){
+   $(this).unbind('click.ssbb').bind('click.ssbb', _toggle_balao);
+  });
+  return {
+   show: function(){
+    _toggle_balao();
+   }
+  };
+ };
+})(window, jQuery);
+// ScrollTo
+/**
+ * jQuery.ScrollTo - Easy element scrolling using jQuery.
+ * Copyright (c) 2007-2009 Ariel Flesler - aflesler(at)gmail(dot)com | http://flesler.blogspot.com
+ * Dual licensed under MIT and GPL.
+ * Date: 5/25/2009
+ * @author Ariel Flesler
+ * @version 1.4.2
+ *
+ * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
+ */
+;(function(d){var k=d.scrollTo=function(a,i,e){d(window).scrollTo(a,i,e)};k.defaults={axis:'xy',duration:parseFloat(d.fn.jquery)>=1.3?0:1};k.window=function(a){return d(window)._scrollable()};d.fn._scrollable=function(){return this.map(function(){var a=this,i=!a.nodeName||d.inArray(a.nodeName.toLowerCase(),['iframe','#document','html','body'])!=-1;if(!i)return a;var e=(a.contentWindow||a).document||a.ownerDocument||a;return d.browser.safari||e.compatMode=='BackCompat'?e.body:e.documentElement})};d.fn.scrollTo=function(n,j,b){if(typeof j=='object'){b=j;j=0}if(typeof b=='function')b={onAfter:b};if(n=='max')n=9e9;b=d.extend({},k.defaults,b);j=j||b.speed||b.duration;b.queue=b.queue&&b.axis.length>1;if(b.queue)j/=2;b.offset=p(b.offset);b.over=p(b.over);return this._scrollable().each(function(){var q=this,r=d(q),f=n,s,g={},u=r.is('html,body');switch(typeof f){case'number':case'string':if(/^([+-]=)?\d+(\.\d+)?(px|%)?$/.test(f)){f=p(f);break}f=d(f,this);case'object':if(f.is||f.style)s=(f=d(f)).offset()}d.each(b.axis.split(''),function(a,i){var e=i=='x'?'Left':'Top',h=e.toLowerCase(),c='scroll'+e,l=q[c],m=k.max(q,i);if(s){g[c]=s[h]+(u?0:l-r.offset()[h]);if(b.margin){g[c]-=parseInt(f.css('margin'+e))||0;g[c]-=parseInt(f.css('border'+e+'Width'))||0}g[c]+=b.offset[h]||0;if(b.over[h])g[c]+=f[i=='x'?'width':'height']()*b.over[h]}else{var o=f[h];g[c]=o.slice&&o.slice(-1)=='%'?parseFloat(o)/100*m:o}if(/^\d+$/.test(g[c]))g[c]=g[c]<=0?0:Math.min(g[c],m);if(!a&&b.queue){if(l!=g[c])t(b.onAfterFirst);delete g[c]}});t(b.onAfter);function t(a){r.animate(g,j,b.easing,a&&function(){a.call(this,n,b)})}}).end()};k.max=function(a,i){var e=i=='x'?'Width':'Height',h='scroll'+e;if(!d(a).is('html,body'))return a[h]-d(a)[e.toLowerCase()]();var c='client'+e,l=a.ownerDocument.documentElement,m=a.ownerDocument.body;return Math.max(l[h],m[h])-Math.min(l[c],m[c])};function p(a){return typeof a=='object'?a:{top:a,left:a}}})(jQuery);
+// SS.balao
+function off() {
+}
+function on() {
+}
+/**
+ * Seta as configurações iniciais do balão
+ * 
+ * @author Romano Augusto
+ * @access public
+ * @param jQuery $balao objeto jQuery da div representando o balão
+ * @param jQuery $setinha objeto jQuery do elemento representando a setinha do balão
+ * @param jObject conf objeto JS de configurações
+ * @return jObject objeto balão
+ */
+SS.balao = function($balao, conf, $setinha) {
+ // Objeto de configuração extendido
+ this.conf = $.extend({
+   position : 'absolute'
+  ,clickout : true
+  ,setinhaCssClasse : 'cm_seta'
+  ,setinhaCssDirecoes : {
+    left : 'lft'
+   ,right : 'rgt'
+   ,top : 't'
+   ,bottom : 'b'
+  }
+     ,alignPadrao : {
+   balao: {
+     'top' : 0
+    ,'left' : 0
+   },
+   setinha: {
+     'dir' :'left'
+    ,'align' : '50%'
+   }
+  }
+ }, conf || {});
+ // Dados do elemento balao: div do balão, e span da setinha
+ this.elm = {
+   // Elm indicando quem é o balão
+   balao: $balao
+   // Elm indicando a setinha do balão
+  ,setinha: (!$setinha? $balao.find(['.', this.conf.setinhaCssClasse].join('')) : $setinha)
+ };
+}
+SS.balao.prototype = {
+ /**
+	 * "Normaliza" o valor percentual do posicionamento da setinha, não deixando passar dos valores 0 e 100%
+	 * 
+	 * @author Romano Augusto
+	 * @param int seta, posicionamento da setinha
+	 * @access public
+	 * @return int seta
+	 */
+ normalizeSeta: function(seta) {
+  return (seta > 100 ? 100 : (seta < 0 ? 0 : seta));
+ },
+ /**
+	 * Método que posiciona o balão de acordo com o elemento referência(elm)
+	 * 
+	 * @author Romano Augusto
+	 * @access public
+	 * @param jQuery elm objeto jQuery do elemento referência
+	 * @param jObject callbacks Objeto contendo as funções 'before' e 'after'
+	 * @param ajuste array Array contendo as informações de ajuste fino do balão
+	 * @param int posSeta posição da setinha em pontos percentuais
+	 * @return jObject objeto balão
+	 */
+ posicionar: function(elm, callbacks, ajuste) {
+  callbacks = callbacks || {};
+  var balao = this.elm.balao;
+  if(this.conf.clickout){
+   // Adiciona/Remove flag no data caso haja navegação ou blur no balão
+   $(balao)
+    .hover(
+      function() {$.data(this, 'hover', true);}
+     ,function() {$.data(this, 'hover', false);}
+    )
+    .data('hover', false);
+   // Dá bind em evento de click que fecha o balão caso o msm não esteja sofrendo "hover"
+   $(document).bind('click.outbalao', function(e) {
+    var $balao = $(balao);
+    if(!$balao.data('hover')){
+     $balao.fadeOut(200, function(){
+      off($balao);
+     });
+     $(document).unbind('click.outbalao');
+    }
+   });
+  }
+  // Chama a before callback
+  if (typeof callbacks.before == 'function') {
+   try{
+    callbacks.before(this.elm.balao, elm);
+   }catch(e){}
+  }
+  // Variáveis p/ ajeitar o balão
+  var top = (this.conf.position == 'relative' ? elm.position().top : elm.offset().top)
+   ,left = (this.conf.position == 'relative' ? elm.position().left : elm.offset().left)
+   ,elm_left = left
+   ,elm_top = top
+   ,elm_altura = elm.outerHeight()
+   ,elm_largura = elm.width()
+   ,b_altura = this.elm.balao.outerHeight()
+   ,b_largura = this.elm.balao.width()
+   ,posSetinhaH = true // Flag p/ controlar se a setinha será posicionada verticalmente ou horizontalmente
+   ,dirSetinha = this.conf.setinhaCssDirecoes.bottom // Direção da setinha (left, top, right, bottom)
+  ;
+  // Ajustes de sintonia fina
+  if ($.isArray(ajuste)) {
+   for(var i = 0, quantAjustes = ajuste.length; i < quantAjustes; ++i){
+    switch(ajuste[i]){
+     case 'top':
+      top -= b_altura + 5;
+     break;
+     case 'bottom':
+      top += elm_altura;
+     break;
+     case 'middle':
+      top -= b_altura /2 - elm_altura / 2;
+     break;
+     case 'left':
+      left -= elm_largura + 10;
+     break;
+     case 'right':
+      left += elm_largura + 10;
+     break;
+     case 'center':
+      left -= b_largura / 2 - elm_largura / 2;
+     break;
+    }
+   }
+  } else if($.isPlainObject(ajuste)) {
+   $.extend(this.conf.alignPadrao, ajuste || {});
+   top += this.conf.alignPadrao.balao.top;
+   left += this.conf.alignPadrao.balao.left;
+  }
+  // Seta a nova posição do balão
+  this.elm.balao.css({
+    'top': top
+   ,'left': left
+  });
+  // Configurações do posicionamento da setinha:
+  var espacoBalao = {
+     top: top + b_altura
+    ,left: left + b_largura
+  };
+  // Direciona a setinha de acordo com o novo posicionamento do balão
+  if(espacoBalao.top <= elm_top){
+   dirSetinha = this.conf.setinhaCssDirecoes.bottom;
+  }else if(top >= elm_top + elm_altura){
+   dirSetinha = this.conf.setinhaCssDirecoes.top;
+  }else if(espacoBalao.left <= elm_left){
+   dirSetinha = this.conf.setinhaCssDirecoes.right;
+  }else{ // if(left >= elm_left + elm_largura)
+   dirSetinha = this.conf.setinhaCssDirecoes.left;
+  }
+  // Flag de controle p/ direcionamento da setinha vertical/horizontal
+  posSetinhaH = (dirSetinha == this.conf.setinhaCssDirecoes.right || dirSetinha == this.conf.setinhaCssDirecoes.left? false : true);
+  // Seta a direção da setinha
+  this.elm.setinha.attr('class', [this.conf.setinhaCssClasse, dirSetinha].join(' '));
+  var
+   setinha_width = this.elm.setinha.css('width') || '6px',
+   setinha_height = this.elm.setinha.css('height') || '6px';
+  // Posiciona a setinha do balão horizontalmente
+  if(posSetinhaH){
+   this.elm.setinha.css('left', (elm_left + (elm_largura * (parseInt(this.conf.alignPadrao.setinha.align.replace(/\D/g, '')) / 100)) - left - parseInt(setinha_width.replace('px', '')) / 2) + 'px');
+  }else{ // Posiciona a setinha do balão verticalmente
+   this.elm.setinha.css('top', elm_top + (elm_altura * (parseInt(this.conf.alignPadrao.setinha.align.replace(/\D/g, '')) / 100)) - top - parseInt(setinha_height.replace('px', '')) / 2 + 'px');
+  }
+  // Chama a after callback
+  if(typeof callbacks.after == 'function'){
+   try{
+    callbacks.after(this.elm.balao, elm);
+   }catch(e){}
+  }
+  return this;
+ }
+};
+// SS.cache
+/**
+ * Namespace para criar um pseudo cache de requisições ajax
+ * 
+ * @author Pedro Chaves
+ * @since 17/05/2010
+ */
+SS.cache = (function(){
+ /**
+	 * Objeto que armazena todo o cache. A tendência é de que ele fique enorme, use com sabedoria =]
+	 */
+ var _cache = {};
+ /**
+	 * Método que coloca uma variável no cache.
+	 *
+	 * @param tipo Tipo do cache
+	 * @param i Índice dentro do objeto
+	 * @param v Valor a ser gravado no cache
+	 *
+	 * @return void
+	 * @example
+	 *
+	 * SS.cache.set('cidades', 'mg', obj)
+	 */
+ var _set_cache = function(tipo, i, v){
+  if(typeof _cache[tipo] == 'undefined'){
+   _cache[tipo] = {};
+  }
+  _cache[tipo][i] = v;
+  return true;
+ };
+ /**
+	 * Método que retorna uma variável contida no cache
+	 *
+	 * @param tipo Tipo do cache
+	 * @param i Índice dentro do objeto
+	 *
+	 * @return o Cache requisitado, ou false caso não encontre.
+	 * @example
+	 *
+	 * var a = SS.cache.get('cidades', 'mg');
+	 */
+ var _get_cache = function(tipo, i){
+  if(typeof _cache[tipo] == 'undefined' || typeof _cache[tipo][i] == 'undefined'){
+   return false;
+  }
+  return _cache[tipo][i];
+ };
+ /**
+	 * Método que exclui uma chave do cache
+	 * 
+	 * @param tipo Tipo do cache
+	 * @param i Índice dentro do objeto
+	 * 
+	 * @return true
+	 * @example
+	 * 
+	 * SS.cache.remove('cidades', 'mg');
+	 */
+ var _delete_cache = function(tipo, i){
+  if(typeof i != 'undefined'){
+   delete _cache[tipo][i];
+  }else{
+   delete _cache[tipo];
+  }
+  return true;
+ };
+ return {
+  get: function(t, i){
+   return _get_cache(t, i);
+  },
+  set: function(t, i, v){
+   return _set_cache(t, i, v);
+  },
+  remove: function(t, i){
+   return _delete_cache(t, i);
+  }
+ }
+})();
+// SS.slider
+/**
+ * Faz a paginação horizontal com animação
+ *
+ * @param <object> o Objeto de parâmetros
+ * 
+ * @author Pedro Chaves
+ * @since 19/08/2010
+ * @version 2.0
+ */
+SS.slider = function(o){
+ /**
+	 * Referência ao objeto geral
+	 * 
+	 * @author Pedro Chaves
+	 * @since 18/08/2011
+	 */
+ var _that = this;
+ /**
+	 * Função que faz a paginação
+	 *
+	 * @param sentido Para qual lado será a animação. Possíveis valores: 'esquerda' e 'direita'
+	 * @author Pedro Chaves
+	 * @since 19/08/2010
+	 */
+ var _paginar = function(sentido){
+  var opt = this._opcoes;
+  switch(sentido){
+   case 'direita':
+    // Não faz nada se o clique for em um elemento com classe off
+    if(opt['elm_dir'].hasClass('off')){
+     return false;
+    }
+    if(typeof opt['before_dir'] == 'function'){
+     opt['before_dir'].call(_that);
+    }
+    // Faz a paginação e atualiza os dados de quanto andou
+    opt['elm'].animate({
+     'left': '-='+opt['pixels']+'px'
+    }, 'fast');
+    opt['direita']--;
+    opt['esquerda']++;
+    // Chama a callback
+    if(typeof opt['callback_dir'] == 'function'){
+     opt['callback_dir'].call(_that);
+    }
+   break;
+   case 'esquerda':
+    if(opt['elm_esq'].hasClass('off')){
+     return false;
+    }
+    if(typeof opt['before_esq'] == 'function'){
+     opt['before_esq'].call(_that);
+    }
+    opt['elm'].animate({
+     'left': '+='+opt['pixels']+'px'
+    }, 'fast');
+    opt['esquerda']--;
+    opt['direita']++;
+    if(typeof opt['callback_esq'] == 'function'){
+     opt['callback_esq'].call(_that);
+    }
+   break;
+  }
+  // Coloca/retira a classe off
+  if(opt['direita'] == 0){
+   opt['elm_dir'].addClass(opt['class_off']);
+  }else if(this._opcoes['direita'] == 1){
+   opt['elm_dir'].removeClass(opt['class_off']);
+  }
+  if(this._opcoes['esquerda'] == 0){
+   opt['elm_esq'].addClass(opt['class_off']);
+  }else if(this._opcoes['esquerda'] == 1){
+   opt['elm_esq'].removeClass(opt['class_off']);
+  }
+  return false;
+ };
+ // Mesclando array de opções com as opções passadas por parâmetro
+ var opt = $.extend({
+  distancia: 0,
+  exibir: 0,
+  esquerda: 0,
+  direita: 0,
+  pixels: 0,
+  elm: $(),
+  elm_dir: $(),
+  elm_esq: $(),
+  callback_esq: function(){},
+  callback_dir: function(){},
+  before_esq: function(){},
+  before_dir: function(){},
+  class_off: 'off'
+ }, o || {});
+ // Calculando a distância necessária para o slider andar
+ if(opt['pixels'] == 0){
+  opt['pixels'] = opt['exibir'] * opt['distancia'];
+ }
+ // Setando eventos
+ opt['elm_esq']
+  .unbind('click.ss_hsl')
+  .bind('click.ss_hsl', function(){
+   return _paginar.call(_that, 'esquerda');
+  });
+ opt['elm_dir']
+  .unbind('click.ss_hsl')
+  .bind('click.ss_hsl', function(){
+   return _paginar.call(_that, 'direita');
+  });
+ // Adicionando a classe off onde necessário
+ opt['esquerda'] == 0 && opt['elm_esq'].addClass(opt['class_off']);
+ opt['direita'] == 0 && opt['elm_dir'].addClass(opt['class_off']);
+ this._opcoes = opt;
+};
+SS.slider.prototype = {
+ set: function(k, v){
+  this._opcoes[k] && (this._opcoes[k] = v);
+ },
+ get: function(k){
+  return this._opcoes[k];
+ }
+};
+// Js do cadastro de colaborador
+(function(window, $) {
+ var SS = window['SS'] || (window['SS'] = {});
+ SS.guitarbattle = SS.guitarbattle || {};
+ SS.guitarbattle.cadastroColaborador = (function() {
+  var
+   // Variáveis
+   $bt_enviar = $('#bt_enviar'),
+   $form = $('#cadastro_colaborador'),
+   // Funções
+   _init = function() {
+    _initListeners();
+   },
+   _initListeners = function() {
+    $bt_enviar.click(function() {
+     _validaForm() && _formAjax();
+     return false;
+    });
+   },
+   _validaForm = function () {
+    return true;
+   },
+   _formAjax = function() {
+    $.ajax({
+     url: SS.guitarbattle.consts.PATH_AJAX + 'cadastro_colaborador.php',
+     type: 'POST',
+     dataType: 'json',
+     data: $form.serialize(),
+     beforeSend: function() {
+      // Remove todas as classes de erro
+      $('small._error').remove();
+      $('label.erro').removeClass('erro');
+     },
+     success: function (data) {
+      if (data.status == 1) {
+       var
+        elm = $('#' + data.id_elm),
+        elm_pai = elm.parent();
+       elm
+       .before('<small class="_error">' + data.msg + '</small>');
+       $.scrollTo(elm_pai.addClass('erro'), 300);
+       if (elm.is('input') || elm.is('textarea')) {
+        elm.focus();
+       }
+      } else if (data.status == 0) {
+       $("#geral").prepend("<div id='box_erro' class='box'><div class='box_aviso'><p>"+ data.msg +"</p></div></div>");
+       $("#box_erro").css('margin-bottom', 0);
+       $.scrollTo('#box_erro', 500);
+      }
+     }
+    });
+    return false;
+   };
+  return {
+   init: function() {
+    _init();
+    return this;
+   }
+  }
+ }());
+}(window, jQuery));
+$(function() {
+ SS.guitarbattle.cadastroColaborador.init();
+});
+// Controle do top do rodapé
+// Controle dos tops do rodapé do site todo
+(function(w, $) {
+ var
+  // Abas de seleção de instrumento
+  $_abasInstrumentos = $('#r_filtro_instrumento > li'),
+  // Contâiner dos links de período
+  $_containerPeriodos = $('#l_top_periodo'),
+  // Setinha de paginação dos períodos, à esquerda
+  $_setaPeriodoDir = $('#periodo_right'),
+  // Setinha de paginação dos períodos, à direita
+  $_setaPeriodoLeft = $('#periodo_left'),
+  // Abas de seleção de período do top votantes
+  $_divTopVotantes = $('#ranking_votantes'),
+  // Objeto contendo divs de controles de paginação(botões "voltar" e "mais")
+  $_controlesPaginacao = (function() {
+   var
+    $divsControles = $('#ranking div.pag'),
+    $divsControlesGeral = $('#ranking_geral div.pag'),
+    $divsLicoesControles = $('#top_licoes div.pag'),
+    $divsColunistasControles = $('#top_colunistas div.pag');
+   return {
+    'c': $divsControles.eq(0),
+    'cg': $divsControlesGeral.eq(0),
+    'm': $divsControles.eq(1),
+    'mg': $divsControlesGeral.eq(0),
+    'v': $divsControles.eq(1),
+    'vg': $divsControlesGeral.eq(0),
+    'l': $divsLicoesControles.eq(0),
+    'n': $divsColunistasControles.eq(0)
+   };
+  }()),
+  _rankingCompleto = ($('#ranking_cnt').length>0?true:false),
+  // "Instância" da "classe" SS.slider
+  _objSlider = false,
+  // Valor da propriedade "distancia", do objeto _objSlider
+  _initDistanciaSlider = 73,
+  // Total máximo de itens, por página, dos tops
+  _totItensPorPagina = 10,
+  // Objeto de controle "aleatório"
+  _objCtrl = {
+   // Paginação dos tops
+   'p': {
+    // Guitarra
+    1: {
+     'c': 1,
+     'cg' : 1,
+     'm': 1,
+     'mg':1,
+     'v':1,
+      'vg':1,
+     'l': 1,
+     'n': 1
+    },
+    // Contra-Baixo
+    2: {
+     'c': 1,
+     'cg' : 1,
+     'm': 1,
+     'mg':1,
+     'v':1,
+      'vg':1,
+     'l': 1,
+     'n': 1
+    },
+    // Violão
+    3: {
+     'c': 1,
+     'cg' : 1,
+     'm': 1,
+     'mg':1,
+      'v':1,
+      'vg':1,
+     'l': 1,
+     'n': 1
+    }
+   },
+   // Paginação dos períodos
+   'p2': 1,
+   // Última página "paginada", dos períodos
+   'lp2': 0,
+   // Fim dos resultados ajax da paginação por períodos
+   'p2_fim': false,
+   // Total de registros da entidade a ser paginada
+   'totEntidade': {
+    'c': parseInt($('#ranking_combatentes > ol').attr('class') && $('#ranking_combatentes > ol').attr('class').replace('_', '')),
+    'v': parseInt($('#ranking_votantes > ol').attr('class') && $('#ranking_votantes > ol').attr('class').replace('_', '')),
+    'cg': parseInt($('#ranking_geral > ol').attr('class') && $('#ranking_geral > ol').attr('class').replace('_', '')),
+    'vg': parseInt($('#ranking_geral > ol').attr('class') && $('#ranking_geral > ol').attr('class').replace('_', '')),
+    'm': parseInt($('#ranking_musicas > ol').attr('class') && $('#ranking_musicas > ol').attr('class').replace('_', '')),
+    'mg': parseInt($('#ranking_geral > ol').attr('class') && $('#ranking_geral > ol').attr('class').replace('_', '')),
+    'l': parseInt($('#top_licoes > div.ranking > ol').attr('class') && $('#top_licoes > div.ranking > ol').attr('class').replace('_', '')),
+    'n': parseInt($('#top_colunistas > div.ranking > ol').attr('class') && $('#top_colunistas > div.ranking > ol').attr('class').replace('_', ''))
+   }
+  },
+  // Alias para as funções de cache
+  _getCache = SS.cache.get,
+  _setCache = SS.cache.set,
+  _flagAjaxFinish = false,
+  /**
+		 * Retorna o id do instrumento selecionado
+		 * 
+		 * @author Romano Augusto
+		 * @since 18/08/2011
+		 * @return int
+		 */
+  _getIdInstrumento = function() {
+   if( $_abasInstrumentos.length==0)
+    return 1;
+   return $_abasInstrumentos.map(function(k) {
+       if ($(this).hasClass('on')) return $(this).find('a').attr('rel');
+   })[0];
+  },
+  /**
+		 * Retorna o valor do período(Ano-Mês), selecionado
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return str Ex.: 2011-08
+		 */
+  _getPeriodo = function() {
+   return $_containerPeriodos.find('li.on > a').attr('rel');
+  },
+  /**
+		 * Seta a página atual
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return int
+		 */
+  _setPagina = function(tipo_top, num_pag) {
+   return _objCtrl.p[_getIdInstrumento()][tipo_top] = (num_pag < 1? 1 : num_pag);
+  },
+  /**
+		 * Retorna a página atual de acordo com o tipo do top
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return int
+		 */
+  _getPagina = function(tipo_top) {
+   return _objCtrl.p[_getIdInstrumento()][tipo_top];
+  },
+  /**
+		 * Seta a página atual
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return int
+		 */
+  _setPaginaPeriodo = function(num_pag) {
+   return _objCtrl.p2 = (num_pag < 1? 1 : num_pag);
+  },
+  /**
+		 * Retorna a página atual de acordo com o tipo do top
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return int
+		 */
+  _getPaginaPeriodo = function() {
+   return _objCtrl.p2;
+  },
+  /**
+		 * Faz o ajax de busca dos dados do top, de acordo com "tipo_top"
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return void
+		 */
+  _paginaTopRodape = function(tipo_top, num_pag, offset) {
+   var key = ['rodape', _getIdInstrumento(), tipo_top, _getPeriodo(), _setPagina(tipo_top, + num_pag)].join('_');
+   _flagAjaxFinish = false;
+   if(!_getCache('ranking', key)){
+    $.ajax({
+     url: SS.guitarbattle.consts.PATH_AJAX + 'tops.php',
+     dataType: 'text',
+     type: 'GET',
+     data: {
+      // Id do instrumento selecionado
+      i: _getIdInstrumento(),
+      // Tipo do top
+      t: tipo_top,
+      // Período do top
+      p: _getPeriodo(),
+      // Número da página
+      n: _setPagina(tipo_top, + num_pag),
+      // flag ranking rodape ou página princial
+      c: _rankingCompleto,
+      //Ver tudo
+      v:(offset ? _returnContainer(tipo_top).children().length : 0)
+     },
+     beforeSend: function(){
+      if ( $('#ranking').length ){
+       $('#ranking > div.ranking').show();
+      }else if ( $('#ranking_mes').length ){
+       $('#ranking_colunas').show();
+       $('#ranking_combatentes').show();
+       $('#ranking_musicas').show();
+      }
+      $('div.ranking_vazio').remove();
+     },
+     success: function(data) {
+      _flagAjaxFinish = true;
+      _setHtml(data, tipo_top);
+      _setCache('ranking', key, data);
+     },
+     // Em caso de erro, diminui o número da página p/ permanecer na mesma 
+     error: function() {
+      _setPagina(tipo_top, - num_pag);
+     }
+    });
+   }else{
+    if ( $('#ranking').length ){
+     $('#ranking > div.ranking').show();
+    }else if ( $('#ranking_mes').length ){
+     $('#ranking_colunas').show();
+     $('#ranking_combatentes').show();
+     $('#ranking_musicas').show();
+    }
+    $('div.ranking_vazio').remove();
+    _setHtml(_getCache('ranking', key), tipo_top);
+   }
+  },
+  _returnContainer = function(tipo_top){
+   // Lista que terá conteúdo inserido
+   var $container;
+   switch(tipo_top){
+    case 'm':
+     $container = $('#ranking_musicas > ol');
+     break;
+    case 'c':
+     $container = $('#ranking_combatentes > ol');
+     break;
+    case 'v':
+     var $container = $('#ranking_votantes > ol');
+     break;
+    case 'cg':
+    case 'mg':
+    case 'vg':
+     var $container = $('#ranking_geral > ol');
+     break;
+    case 'l':
+     $container = $('#top_licoes > div > ol');
+     break;
+    case 'n':
+     $container = $('#top_colunistas > div > ol');
+     break;
+   }
+   return $container;
+  },
+  /**
+		 * Insere o html do top
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return void
+		 */
+  _setHtml = function(html, tipo_top) {
+   var
+    $container = _returnContainer(tipo_top),
+    // Html retornado do ajax, transformado em objeto jQuery
+    $html = $(),
+    // Número da página atual, do top correspondente
+    pagAtual = _getPagina(tipo_top),
+    mes = '', ano = '';
+   $html = $(html);
+   // Se for a primeira página, pega o total de entidade, p/ exibir/esconder os controles de paginação
+   if(pagAtual === 1){
+    $html = $html.toArray();
+    _objCtrl['totEntidade'][tipo_top] = parseInt($($html.pop()).find('a').attr('rel')) || 0;
+   }
+   if(_flagAjaxFinish && (_objCtrl['totEntidade'][tipo_top] == 0) && $('div.ranking_vazio').length == 0){
+    var meses = {
+      "jan": "janeiro",
+      "fev": "fevereiro",
+      "mar": "março",
+      "abr": "abril",
+      "mai": "maio",
+      "jun": "junho",
+      "jul": "julho",
+      "ago": "agosto",
+      "set": "setembro",
+      "out": "outubro",
+      "nov": "novembro",
+      "dez": "dezembro"
+     },
+     aux = $('#l_top_periodo > li.on').text().split('/'),
+     mes = $.trim(aux[0].toLowerCase()),
+     ano = $.trim(aux[1]);
+    if ( $('#ranking').length ){
+     $('#ranking > div.ranking').hide();
+     $('#ranking').append('<div class="ranking_vazio"><p>Não tivemos batalhas julgadas em ' + meses[mes] + ' de ' + ano + '</p></div>');
+    }else if ( $('#ranking_mes').length ){
+     $('#ranking_colunas').hide();
+     if($('#ranking_combatentes').length){
+      $('#ranking_combatentes').hide();
+      $('#ranking_mes').append('<div class="ranking_vazio"><p>Não tivemos batalhas julgadas em ' + meses[mes] + ' de ' + ano + '</p></div>');
+     }else if($('#ranking_musicas').length){
+      $('#ranking_musicas').hide();
+      $('#ranking_mes').append('<div class="ranking_vazio"><p>Não tivemos músicas julgadas em ' + meses[mes] + ' de ' + ano + '</p></div>');
+     }
+    }
+   }
+   // Adiciona o html no container
+   if(!_rankingCompleto || pagAtual==1)
+    $container.html($html);
+   else
+    $container.append($html);
+   // Se a página for maior que 10, aplica a classe "fix100", nos ols
+   if (pagAtual*_totItensPorPagina > 99) {
+    $container.addClass('fix100');
+   }else{
+    $container.removeClass('fix100');
+   }
+   // Seta os controles de paginação
+   if(!_rankingCompleto)
+    _setControlesPaginacao(tipo_top, $container, pagAtual);
+   else
+    _setControlesPaginacaoCompleto(tipo_top, $container, pagAtual);
+   if(!_rankingCompleto)
+    $.scrollTo($container.parent().parent(), 200);
+   //else
+    //$.scrollTo($('li:eq('+((pagAtual*_totItensPorPagina)-(_totItensPorPagina+1))+')',$container), 200);
+  },
+  /**
+		 * Exibe/esconde os controles de paginação do top em questão
+		 * 
+		 * @author Victor Hugo
+		 * @since 12/09/2011
+		 * @return void
+		 */
+  _setControlesPaginacaoCompleto = function(tipo_top, $container, pagAtual) {
+    // Pega o controle de paginação do top interagido
+    if(tipo_top=='cg' || tipo_top=='mg' || tipo_top=='vg' )
+     $controlePag = $_controlesPaginacao[tipo_top];
+    else
+     $controlePag = $('#ranking_mes');
+    $btMais = $controlePag.find('a').filter(function() {
+     return $(this).hasClass('bt_v');
+    }),
+    // Total de registros da entidade
+    totEntidade = _objCtrl['totEntidade'][tipo_top],
+    // Total de elementos impressos
+    totElem = $container.children().length;
+    $btMais.unbind('click');
+    //console.log(totEntidade, _totItensPorPagina,pagAtual,Math.ceil(totEntidade / _totItensPorPagina));
+    $('div.pag span',$controlePag).html('Exibindo  '+totElem+' de '+totEntidade);
+    if (pagAtual === Math.ceil(totEntidade / _totItensPorPagina) || totEntidade==0 || totEntidade<=_totItensPorPagina || totElem>=totEntidade) {
+     if(totEntidade==0)
+      $('div.pag',$controlePag).fadeOut();
+     $('div.pag a',$controlePag).fadeOut();
+    } else {
+     $('div.pag a.mais',$controlePag).html('Ver todos as '+totEntidade+' »');
+     $('div.pag',$controlePag).show().children().show();
+     $btMais.click(function(){
+      var
+        $link = $(this),
+        tipo_top = $link.attr('rel'),
+        num_pag = 1;
+       _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+       return false;
+     });
+     $('div.pag > .mais',$controlePag).unbind().click(function() {
+       var
+        $link = $(this),
+        tipo_top = $link.attr('rel'),
+        num_pag = 1;
+       _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag,true);
+       return false;
+      });
+    }
+  },
+  /**
+		 * Exibe/esconde os controles de paginação do top em questão
+		 * 
+		 * @author Romano Augusto
+		 * @since 29/08/2011
+		 * @return void
+		 */
+  _setControlesPaginacao = function(tipo_top, $container, pagAtual) {
+   var id_instrumento = _getIdInstrumento();
+   var parent = $('a[rel="'+id_instrumento+'"]').parent();
+   var atualizarBotaoVerMais = function(flag){
+    $('#ranking div.pag a.bt_v').each(function(){
+     var tmp = $(this).attr('href').split('/');
+     $(this).attr('href', '/' + tmp[1] + '/' + tmp[2] + '/#' + flag);
+    });
+   };
+   if ( parent.hasClass('aba_guitarra') ){
+    atualizarBotaoVerMais('guitarra');
+   }else if ( parent.hasClass('aba_baixo') ){
+    atualizarBotaoVerMais('contra-baixo');
+   }else if ( parent.hasClass('aba_violao') ){
+    atualizarBotaoVerMais('violao');
+   }
+   var
+    // Pega o controle de paginação do top interagido
+    $controlePag = $_controlesPaginacao[tipo_top],
+    $btVoltar = $controlePag.find('a._v'),
+    $btMais = $controlePag.find('a._m'),
+    // Total de registros da entidade
+    totEntidade = _objCtrl['totEntidade'][tipo_top],
+    // Total de elementos impressos
+    totElem = $container.children().length;
+   // Remove os clicks que irão ser setados dependendo do fluxo
+   $btVoltar.unbind('click');
+   $btMais.unbind('click');
+   // Se de cara, tiver menor ou igual à capacidade máxima, desabilita os dois botões
+   if (pagAtual === 1 && (totElem < _totItensPorPagina || totElem === totEntidade)) {
+    $btVoltar.addClass('off');
+    $btVoltar.click(function(){
+     return false;
+    });
+    $btMais.addClass('off');
+    $btMais.click(function(){
+     return false;
+    });
+    return false;
+   }
+   // Toggle do botão "voltar"
+   if (pagAtual === 1) {
+    $btVoltar
+     .addClass('off')
+     .bind('click', function(){
+      return false;
+     });
+   } else {
+    $btVoltar
+     .removeClass('off')
+     .bind('click', function(){
+      var
+        $link = $(this),
+        tipo_top = $link.attr('rel'),
+        num_pag = ($link.hasClass('_v')? -1 : 1);
+       _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+       return false;
+     });
+   }
+   // Toggle do botão "mais"
+   if (pagAtual === Math.ceil(totEntidade / _totItensPorPagina)) {
+    $btMais
+     .addClass('off')
+     .bind('click', function(){
+      return false;
+     });
+   } else {
+    $btMais
+     .removeClass('off')
+     .bind('click', function(){
+      var
+       $link = $(this),
+       tipo_top = $link.attr('rel'),
+       num_pag = ($link.hasClass('_v')? -1 : 1);
+       _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+       return false;
+     });
+   }
+  },
+  /**
+		 * Função genérica p/ ativar e desativar abas
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return boolean
+		 */
+  _ativaDesativaAbas = function($li) {
+   if ($li.hasClass('on')) return true;
+   $li
+         .addClass('on')
+         .siblings()
+             .removeClass('on');
+   return false;
+  },
+  /**
+		 * Função genérica p/ paginar os períodos de ano-mês
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return boolean
+		 */
+  _paginaPeriodo = function(num_pag, callback) {
+   if (_objCtrl['p2_fim']) return false;
+   $.ajax({
+    url: SS.guitarbattle.consts.PATH_AJAX + 'tops.php',
+    dataType: 'text',
+    type: 'GET',
+    data: {
+     n: _setPaginaPeriodo(num_pag),
+     i: _getIdInstrumento()
+    },
+    beforeSend: function(){
+     _flagAjaxFinish = false;
+    },
+    success: function(data) {
+     _flagAjaxFinish = true;
+     _setHtmlPeriodo(data);
+     if (data.length === 0) {
+      _objCtrl['p2_fim'] = true;
+      return;
+     }
+     _objCtrl['lp2'] = _getPaginaPeriodo();
+     typeof callback === 'function' && callback();
+    }
+   });
+  },
+  /**
+		 * Insere o html dos períodos
+		 * 
+		 * @author Romano Augusto
+		 * @since 19/08/2011
+		 * @return void
+		 */
+  _setHtmlPeriodo = function(html) {
+   if (_getPaginaPeriodo() === 1) {
+    $_containerPeriodos
+     .html(html)
+     .css('left', '0px');
+    // Reinicia o objSlider
+    _resetObjSlider();
+   } else {
+    $_containerPeriodos
+     // Adiciona o html
+     .append(html)
+     // Aumenta o tamanho do container, p/ o slide não "tampar" o conteúdo
+     .width($_containerPeriodos.width() + 250);
+   }
+  },
+  /**
+		 * Controle do obj Slider, ao trocar de aba de instrumento
+		 * 
+		 * @author Romano Augusto
+		 * @since 23/08/2011
+		 * @return obj SS.slider object
+		 */
+  _resetObjSlider = function() {
+   _objSlider = new SS.slider({
+    distancia: _initDistanciaSlider, // Width de cada <li>
+    exibir: 4, // Exibe 4 <li> por vez
+    esquerda: 0, // Começa a contagem da esquerda em 0
+    direita: 4,
+    elm: $_containerPeriodos,
+    elm_dir: $_setaPeriodoDir,
+    elm_esq: $_setaPeriodoLeft,
+    callback_esq: function() {
+     _setPaginaPeriodo(_getPaginaPeriodo() - 1);
+    },
+    before_esq: function() {
+     $_setaPeriodoDir.removeClass('off');
+     var leftContainer = parseInt($_containerPeriodos.css('left'), 10);
+     if (leftContainer + (this._opcoes.exibir * _initDistanciaSlider) > 0) {
+      this._opcoes.pixels = Math.abs(leftContainer);
+     } else {
+      this._opcoes.pixels = this._opcoes.exibir * _initDistanciaSlider;
+     }
+    },
+    before_dir: function() {
+     $_setaPeriodoLeft.removeClass('off');
+     var
+      elmRestantes = parseInt($_containerPeriodos.children().length - (Math.abs(parseInt($_containerPeriodos.css('left'), 10)) / _initDistanciaSlider) - 8);
+        if (elmRestantes < this._opcoes.exibir) {
+         this._opcoes.direita = 1;
+         this._opcoes.pixels = _initDistanciaSlider * elmRestantes;
+        } else {
+         this._opcoes.direita = elmRestantes;
+        }
+    },
+    callback_dir: function() {
+     // Se já foi paginado, antes, sai da callback
+     if (_objCtrl['lp2'] > _getPaginaPeriodo()) {
+      _setPaginaPeriodo(_getPaginaPeriodo() + 1);
+      return;
+     }
+        _paginaPeriodo(_getPaginaPeriodo() + 1);
+       }
+   });
+  };
+ // Inicializa o objSlider
+ _resetObjSlider();
+ // Seta os eventos
+ if(_rankingCompleto)
+  _totItensPorPagina = 20;
+ /**
+	 * Troca de abas do top votantes(rodapé)
+	 * 
+	 * @author Romano Augusto
+	 * @since 10/08/2011
+	 */
+ $_divTopVotantes.find('ul.abas > li').click(function() {
+        var
+      // Guarda o li clicado(aba =P)
+         $li = $(this),
+         // Guarda a div contendo os ols estilizados
+         $divOls = false,
+         // Variável auxiliar p/ armazenar o conteúdo da lista visível
+         listaAux = false,
+         // Armazena o conteúdo da lista a ser visível
+         listaHidden = false,
+         // Ol visible
+         $olVisible = false;
+        // Ativa e desativa as abas
+        if (_ativaDesativaAbas($li)) return false;
+        $divOls = $_divTopVotantes.find('div.ranking');
+        // Exibe e esconde as listas com as lições
+        $olVisible = $divOls.find('ol:visible');
+        listaAux = $olVisible.html();
+        listaHidden = $divOls.find('ol:hidden');
+        // Realiza a troca do conteúdo
+        $olVisible.html(listaHidden.html());
+        listaHidden.html(listaAux);
+        return false;
+    });
+ // Aba de instrumentos
+ $_abasInstrumentos.click(function() {
+  var $li = $(this); // Guarda o li clicado (aba)
+  // Ativa e desativa as abas
+        if ( _ativaDesativaAbas($li) ){ return false; }
+        // Pega as abas de período, à partir da página 1, e no success pagina os rodapés à partir da página 1
+        _objCtrl['p2_fim'] = false;
+        _paginaPeriodo(1, function() {
+         if ( _rankingCompleto ){
+          var tipo = $('#ranking_mes div.pag > .bt_v').attr('rel');
+          _paginaTopRodape(tipo, 1);
+          if(tipo=='m' || tipo=='c')
+           _paginaTopRodape(tipo+'g', 1);
+          _objCtrl['lp2'] = 0;
+          return false;
+         }
+         _paginaTopRodape('c', 1); // Top Combatentes na pagina 1
+      _paginaTopRodape('m', 1); // Top músicas na página 1
+      _objCtrl['lp2'] = 0; // Reseta a última página "paginada"
+        });
+        if ( $li.hasClass('aba_guitarra') ){
+         $('#ranking_geral a.ouvir_todas').attr('rel','top-guitarra-geral');
+         $('#ranking_mes #ranking_colunas a.ouvir_todas').attr('rel','top-guitarra');
+         window.location = '#guitarra';
+        }else if ( $li.hasClass('aba_baixo') ){
+         $('#ranking_geral a.ouvir_todas').attr('rel','top-baixo-geral');
+         $('#ranking_mes #ranking_colunas a.ouvir_todas').attr('rel','top-baixo');
+         window.location = '#contra-baixo';
+        }else if ( $li.hasClass('aba_violao') ){
+         $('#ranking_geral a.ouvir_todas').attr('rel','top-violao-geral');
+         $('#ranking_mes #ranking_colunas a.ouvir_todas').attr('rel','top-violao');
+         window.location = '#violao';
+        }
+  return false;
+ });
+ // Links de período
+ $_containerPeriodos.find('li > a').live('click', function() {
+  var
+   $link = $(this),
+   $liLink = $link.parent();
+  // Ativa e desativa as abas
+        if (_ativaDesativaAbas($liLink))
+         return false;
+  // Realiza uma paginação dos tops "Combatentes" e "Músicas", ambos na página 1
+  if(_rankingCompleto){
+         _paginaTopRodape($('#ranking_mes div.pag > .bt_v').attr('rel'), 1);
+         return false;
+        }
+  _paginaTopRodape('c', 1);
+  _paginaTopRodape('m', 1);
+  return false;
+ });
+    // Paginação dos tops: "Combatentes" e "Músicas"
+    $('#ranking div.pag > ._m').click(function() {
+        var
+         $link = $(this),
+         tipo_top = $link.attr('rel'),
+         num_pag = ($link.hasClass('_v')? -1 : 1);
+        _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+        return false;
+    });
+ // Seta o controle da paginacao incial
+  _setControlesPaginacao('m', $('#ranking_musicas > ol'), 1);
+  _setControlesPaginacao('c', $('#ranking_combatentes > ol'), 1);
+ // Paginação dos tops: "Licoes"
+ $('#top_licoes div.pag > ._m').click(function() {
+   var
+    $link = $(this),
+    tipo_top = $link.attr('rel'),
+    num_pag = ($link.hasClass('_v')? -1 : 1);
+   _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+   return false;
+  });
+  // Seta o controle da paginacao incial
+  _setControlesPaginacao('l', $('#top_licoes > div > ol'), 1);
+ // Paginação dos tops: "Colunistas"
+ $('#top_colunistas div.pag > ._m').click(function() {
+   var
+    $link = $(this),
+    tipo_top = $link.attr('rel'),
+    num_pag = ($link.hasClass('_v')? -1 : 1);
+   _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+   return false;
+  });
+  // Paginação dos tops Completos
+ $('#ranking_mes div.pag > .bt_v,#ranking_geral div.pag > .bt_v').click(function() {
+   var
+    $link = $(this),
+    tipo_top = $link.attr('rel'),
+    num_pag = 1;
+   _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag);
+   return false;
+  });
+   // Paginação dos tops Completos
+ $('#ranking_mes div.pag > .mais').click(function() {
+   var
+    $link = $(this),
+    tipo_top = $link.attr('rel'),
+    num_pag = 1;
+   _paginaTopRodape(tipo_top, _getPagina(tipo_top) + num_pag,true);
+   return false;
+  });
+ $('#ranking_geral a.ouvir_todas').click(function(){
+  var playlist = $(this).attr('rel'),
+   musica = ($(this).parent().find('li.ranking_ouro a').attr('href')).substr(7);
+   window.location = '/musica'+musica+'#'+playlist+musica;
+   return false;
+ });
+ $('#ranking_mes #ranking_colunas a.ouvir_todas').click(function(){
+  var playlist = $(this).attr('rel'),
+   musica = ($('#ranking_musicas ol li.ranking_ouro a').attr('href')).substr(7);
+   window.location = '/musica'+musica+'#'+playlist+'-'+_getPeriodo()+musica;
+   return false;
+ });
+  // Seta o controle da paginacao incial
+  _setControlesPaginacao('n', $('#top_colunistas > div > ol'), 1);
+  //Triggers para filtros de tipos de ranking
+  if ( _rankingCompleto ){
+   if ( window.location.hash == '#guitarra' ){
+    $('#r_filtro_instrumento li.aba_guitarra a').trigger('click');
+   }else if ( window.location.hash == '#contra-baixo' ){
+   $('#r_filtro_instrumento li.aba_baixo a').trigger('click');
+   }else if ( window.location.hash == '#violao' ){
+   $('#r_filtro_instrumento li.aba_violao a').trigger('click');
+   }
+  }
+}(window, jQuery));
+// SS.util
+/**
+
+ * Namespace com algumas funções genéricas
+
+ * 
+
+ * @author Romano Augusto
+
+ * @since 12/07/2010
+
+ */
+SS.util = {
+  array: {
+   search: function(needle, haystack, strict){
+    if(!haystack){
+     var away = new Error('ss.util.arraySearch() >> Parâmetros de busca inválidos');
+     throw away; // Tchau erro :D
+    }
+    if(!needle)
+     return -1;
+    // Strict é opcional, então validamos
+    strict = strict || false;
+    for(var i = 0, max = haystack.length; i < max; i++){
+     if(strict){
+      if(needle === haystack[i]){
+       return i;
+      }
+     }else{
+      if(needle == haystack[i]){
+       return i;
+      }
+     }
+    }
+    return -1;
+   },
+   unique: function(arr){
+    var ret = [];
+    for(var i = 0; i < arr.length; i++){
+     if($.inArray(arr[i], ret) == -1){
+      ret.push(arr[i]);
+     }
+    }
+    return ret;
+   },
+   max: function(arr){
+    var maior = -10E8;
+    for(var i = 0, max = arr.length; i < max; i++){
+     if(typeof arr[i] == 'number' && arr[i] > maior){
+      maior = arr[i];
+     }
+    }
+    return maior;
+   },
+   min: function(arr){
+    var menor = 10E8;
+    for(var i = 0, max = arr.length; i < max; i++){
+     if(typeof arr[i] == 'number' && arr[i] > menor){
+      menor = arr[i];
+     }
+    }
+    return menor;
+   },
+   count_values: function(arr){
+    var ret = {};
+    for(var i = 0, max = arr.length; i < max; i++){
+     if(!(arr[i] in ret)){
+      ret[arr[i]] = 1;
+     }else{
+      ret[arr[i]]++;
+     }
+    }
+    return ret
+   }
+  },
+  /**
+
+		 * Retorna o "length" de um objeto qualquer
+
+		 * 
+
+		 * @author Romano Augusto
+
+		 * @since 12/07/2010
+
+		 * @version 1.0
+
+		 */
+  size: function(obj){
+   var len = 0, k;
+   for(k in obj)
+    len++;
+   return len;
+  },
+  ltrim: function(s){
+   return s.replace(/^(\s)*/, '') || '';
+  },
+  rtrim: function(s){
+   return s.replace(/(\s)*$/, '') || '';
+  },
+  trim: function(s){
+   return s.replace(/[\s]*\s/, ' ') || '';
+  },
+  addGifLoading: function(elm, classe){
+   if(typeof elm == 'string')
+    elm = $(elm);
+   classe = classe || 'loading';
+   if(elm.find('.'+classe).length == 0)
+    elm.append(['<img class="', classe,'" alt="Carregando..." src="', SS.guitarbattle.consts.PATH_STATIC, 'img/loading.gif" />'].join(''));
+  },
+  removeGifLoading: function(elm, classe){
+   if(typeof elm == 'string')
+    elm = $(elm);
+   classe = classe || 'loading';
+   if(elm.find('.'+classe).length > 0)
+    elm.find('.'+classe).remove();
+  },
+  sleep: function(ms) {
+   // Pega o timestamp atual
+      var t_atual = new Date();
+   // Limite máximo de 1min
+   if (ms >= 60000) {
+    return;
+   }
+   // Loop p/ prender o processamento
+      while (new Date() - t_atual < ms) {
+       ;
+      }
+      return this;
+  },
+  rand: function(min, max){
+   var argc = arguments.length;
+      if(argc === 0){
+    min = 0;
+    max = 2147483647;
+      }else if(argc === 1){
+    throw new Error('Warning: rand() expects exactly 2 parameters, 1 given');
+      }
+   return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+  formataTempo: function (segundos) {
+      if(!segundos)
+          return '00:00';
+      var minuto = parseInt(segundos / 60),
+    segundo = segundos % 60;
+      return [(minuto < 10 ? '0' : ''), minuto, ':', (segundo < 10 ? '0' : ''), segundo].join('');
+  },
+  converteTempo: function(tempo){
+   var aux = tempo.split(':');
+   return (parseInt(aux[0], 10) * 60) + parseInt(aux[1], 10);
+  }
+ };
+// JSON
+var JSON;JSON||(JSON={});
+(function(){function k(a){return a<10?"0"+a:a}function o(a){p.lastIndex=0;return p.test(a)?'"'+a.replace(p,function(a){var c=r[a];return typeof c==="string"?c:"\\u"+("0000"+a.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+a+'"'}function l(a,j){var c,d,h,m,g=e,f,b=j[a];b&&typeof b==="object"&&typeof b.toJSON==="function"&&(b=b.toJSON(a));typeof i==="function"&&(b=i.call(j,a,b));switch(typeof b){case "string":return o(b);case "number":return isFinite(b)?String(b):"null";case "boolean":case "null":return String(b);case "object":if(!b)return"null";
+e+=n;f=[];if(Object.prototype.toString.apply(b)==="[object Array]"){m=b.length;for(c=0;c<m;c+=1)f[c]=l(c,b)||"null";h=f.length===0?"[]":e?"[\n"+e+f.join(",\n"+e)+"\n"+g+"]":"["+f.join(",")+"]";e=g;return h}if(i&&typeof i==="object"){m=i.length;for(c=0;c<m;c+=1)typeof i[c]==="string"&&(d=i[c],(h=l(d,b))&&f.push(o(d)+(e?": ":":")+h))}else for(d in b)Object.prototype.hasOwnProperty.call(b,d)&&(h=l(d,b))&&f.push(o(d)+(e?": ":":")+h);h=f.length===0?"{}":e?"{\n"+e+f.join(",\n"+e)+"\n"+g+"}":"{"+f.join(",")+
+"}";e=g;return h}}if(typeof Date.prototype.toJSON!=="function")Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+k(this.getUTCMonth()+1)+"-"+k(this.getUTCDate())+"T"+k(this.getUTCHours())+":"+k(this.getUTCMinutes())+":"+k(this.getUTCSeconds())+"Z":null},String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(){return this.valueOf()};var q=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+p=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,e,n,r={"\u0008":"\\b","\t":"\\t","\n":"\\n","\u000c":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},i;if(typeof JSON.stringify!=="function")JSON.stringify=function(a,j,c){var d;n=e="";if(typeof c==="number")for(d=0;d<c;d+=1)n+=" ";else typeof c==="string"&&(n=c);if((i=j)&&typeof j!=="function"&&(typeof j!=="object"||typeof j.length!=="number"))throw Error("JSON.stringify");return l("",
+{"":a})};if(typeof JSON.parse!=="function")JSON.parse=function(a,e){function c(a,d){var g,f,b=a[d];if(b&&typeof b==="object")for(g in b)Object.prototype.hasOwnProperty.call(b,g)&&(f=c(b,g),f!==void 0?b[g]=f:delete b[g]);return e.call(a,d,b)}var d,a=String(a);q.lastIndex=0;q.test(a)&&(a=a.replace(q,function(a){return"\\u"+("0000"+a.charCodeAt(0).toString(16)).slice(-4)}));if(/^[\],:{}\s]*$/.test(a.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,"@").replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,
+"]").replace(/(?:^|:|,)(?:\s*\[)+/g,"")))return d=eval("("+a+")"),typeof e==="function"?c({"":d},""):d;throw new SyntaxError("JSON.parse");}})();
+// swfobject 2.2
+/*	SWFObject v2.2 <http://code.google.com/p/swfobject/> 
+	is released under the MIT License <http://www.opensource.org/licenses/mit-license.php> 
+*/
+var swfobject=function(){var D="undefined",r="object",S="Shockwave Flash",W="ShockwaveFlash.ShockwaveFlash",q="application/x-shockwave-flash",R="SWFObjectExprInst",x="onreadystatechange",O=window,j=document,t=navigator,T=false,U=[h],o=[],N=[],I=[],l,Q,E,B,J=false,a=false,n,G,m=true,M=function(){var aa=typeof j.getElementById!=D&&typeof j.getElementsByTagName!=D&&typeof j.createElement!=D,ah=t.userAgent.toLowerCase(),Y=t.platform.toLowerCase(),ae=Y?/win/.test(Y):/win/.test(ah),ac=Y?/mac/.test(Y):/mac/.test(ah),af=/webkit/.test(ah)?parseFloat(ah.replace(/^.*webkit\/(\d+(\.\d+)?).*$/,"$1")):false,X=!+"\v1",ag=[0,0,0],ab=null;if(typeof t.plugins!=D&&typeof t.plugins[S]==r){ab=t.plugins[S].description;if(ab&&!(typeof t.mimeTypes!=D&&t.mimeTypes[q]&&!t.mimeTypes[q].enabledPlugin)){T=true;X=false;ab=ab.replace(/^.*\s+(\S+\s+\S+$)/,"$1");ag[0]=parseInt(ab.replace(/^(.*)\..*$/,"$1"),10);ag[1]=parseInt(ab.replace(/^.*\.(.*)\s.*$/,"$1"),10);ag[2]=/[a-zA-Z]/.test(ab)?parseInt(ab.replace(/^.*[a-zA-Z]+(.*)$/,"$1"),10):0}}else{if(typeof O.ActiveXObject!=D){try{var ad=new ActiveXObject(W);if(ad){ab=ad.GetVariable("$version");if(ab){X=true;ab=ab.split(" ")[1].split(",");ag=[parseInt(ab[0],10),parseInt(ab[1],10),parseInt(ab[2],10)]}}}catch(Z){}}}return{w3:aa,pv:ag,wk:af,ie:X,win:ae,mac:ac}}(),k=function(){if(!M.w3){return}if((typeof j.readyState!=D&&j.readyState=="complete")||(typeof j.readyState==D&&(j.getElementsByTagName("body")[0]||j.body))){f()}if(!J){if(typeof j.addEventListener!=D){j.addEventListener("DOMContentLoaded",f,false)}if(M.ie&&M.win){j.attachEvent(x,function(){if(j.readyState=="complete"){j.detachEvent(x,arguments.callee);f()}});if(O==top){(function(){if(J){return}try{j.documentElement.doScroll("left")}catch(X){setTimeout(arguments.callee,0);return}f()})()}}if(M.wk){(function(){if(J){return}if(!/loaded|complete/.test(j.readyState)){setTimeout(arguments.callee,0);return}f()})()}s(f)}}();function f(){if(J){return}try{var Z=j.getElementsByTagName("body")[0].appendChild(C("span"));Z.parentNode.removeChild(Z)}catch(aa){return}J=true;var X=U.length;for(var Y=0;Y<X;Y++){U[Y]()}}function K(X){if(J){X()}else{U[U.length]=X}}function s(Y){if(typeof O.addEventListener!=D){O.addEventListener("load",Y,false)}else{if(typeof j.addEventListener!=D){j.addEventListener("load",Y,false)}else{if(typeof O.attachEvent!=D){i(O,"onload",Y)}else{if(typeof O.onload=="function"){var X=O.onload;O.onload=function(){X();Y()}}else{O.onload=Y}}}}}function h(){if(T){V()}else{H()}}function V(){var X=j.getElementsByTagName("body")[0];var aa=C(r);aa.setAttribute("type",q);var Z=X.appendChild(aa);if(Z){var Y=0;(function(){if(typeof Z.GetVariable!=D){var ab=Z.GetVariable("$version");if(ab){ab=ab.split(" ")[1].split(",");M.pv=[parseInt(ab[0],10),parseInt(ab[1],10),parseInt(ab[2],10)]}}else{if(Y<10){Y++;setTimeout(arguments.callee,10);return}}X.removeChild(aa);Z=null;H()})()}else{H()}}function H(){var ag=o.length;if(ag>0){for(var af=0;af<ag;af++){var Y=o[af].id;var ab=o[af].callbackFn;var aa={success:false,id:Y};if(M.pv[0]>0){var ae=c(Y);if(ae){if(F(o[af].swfVersion)&&!(M.wk&&M.wk<312)){w(Y,true);if(ab){aa.success=true;aa.ref=z(Y);ab(aa)}}else{if(o[af].expressInstall&&A()){var ai={};ai.data=o[af].expressInstall;ai.width=ae.getAttribute("width")||"0";ai.height=ae.getAttribute("height")||"0";if(ae.getAttribute("class")){ai.styleclass=ae.getAttribute("class")}if(ae.getAttribute("align")){ai.align=ae.getAttribute("align")}var ah={};var X=ae.getElementsByTagName("param");var ac=X.length;for(var ad=0;ad<ac;ad++){if(X[ad].getAttribute("name").toLowerCase()!="movie"){ah[X[ad].getAttribute("name")]=X[ad].getAttribute("value")}}P(ai,ah,Y,ab)}else{p(ae);if(ab){ab(aa)}}}}}else{w(Y,true);if(ab){var Z=z(Y);if(Z&&typeof Z.SetVariable!=D){aa.success=true;aa.ref=Z}ab(aa)}}}}}function z(aa){var X=null;var Y=c(aa);if(Y&&Y.nodeName=="OBJECT"){if(typeof Y.SetVariable!=D){X=Y}else{var Z=Y.getElementsByTagName(r)[0];if(Z){X=Z}}}return X}function A(){return !a&&F("6.0.65")&&(M.win||M.mac)&&!(M.wk&&M.wk<312)}function P(aa,ab,X,Z){a=true;E=Z||null;B={success:false,id:X};var ae=c(X);if(ae){if(ae.nodeName=="OBJECT"){l=g(ae);Q=null}else{l=ae;Q=X}aa.id=R;if(typeof aa.width==D||(!/%$/.test(aa.width)&&parseInt(aa.width,10)<310)){aa.width="310"}if(typeof aa.height==D||(!/%$/.test(aa.height)&&parseInt(aa.height,10)<137)){aa.height="137"}j.title=j.title.slice(0,47)+" - Flash Player Installation";var ad=M.ie&&M.win?"ActiveX":"PlugIn",ac="MMredirectURL="+O.location.toString().replace(/&/g,"%26")+"&MMplayerType="+ad+"&MMdoctitle="+j.title;if(typeof ab.flashvars!=D){ab.flashvars+="&"+ac}else{ab.flashvars=ac}if(M.ie&&M.win&&ae.readyState!=4){var Y=C("div");X+="SWFObjectNew";Y.setAttribute("id",X);ae.parentNode.insertBefore(Y,ae);ae.style.display="none";(function(){if(ae.readyState==4){ae.parentNode.removeChild(ae)}else{setTimeout(arguments.callee,10)}})()}u(aa,ab,X)}}function p(Y){if(M.ie&&M.win&&Y.readyState!=4){var X=C("div");Y.parentNode.insertBefore(X,Y);X.parentNode.replaceChild(g(Y),X);Y.style.display="none";(function(){if(Y.readyState==4){Y.parentNode.removeChild(Y)}else{setTimeout(arguments.callee,10)}})()}else{Y.parentNode.replaceChild(g(Y),Y)}}function g(ab){var aa=C("div");if(M.win&&M.ie){aa.innerHTML=ab.innerHTML}else{var Y=ab.getElementsByTagName(r)[0];if(Y){var ad=Y.childNodes;if(ad){var X=ad.length;for(var Z=0;Z<X;Z++){if(!(ad[Z].nodeType==1&&ad[Z].nodeName=="PARAM")&&!(ad[Z].nodeType==8)){aa.appendChild(ad[Z].cloneNode(true))}}}}}return aa}function u(ai,ag,Y){var X,aa=c(Y);if(M.wk&&M.wk<312){return X}if(aa){if(typeof ai.id==D){ai.id=Y}if(M.ie&&M.win){var ah="";for(var ae in ai){if(ai[ae]!=Object.prototype[ae]){if(ae.toLowerCase()=="data"){ag.movie=ai[ae]}else{if(ae.toLowerCase()=="styleclass"){ah+=' class="'+ai[ae]+'"'}else{if(ae.toLowerCase()!="classid"){ah+=" "+ae+'="'+ai[ae]+'"'}}}}}var af="";for(var ad in ag){if(ag[ad]!=Object.prototype[ad]){af+='<param name="'+ad+'" value="'+ag[ad]+'" />'}}aa.outerHTML='<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"'+ah+">"+af+"</object>";N[N.length]=ai.id;X=c(ai.id)}else{var Z=C(r);Z.setAttribute("type",q);for(var ac in ai){if(ai[ac]!=Object.prototype[ac]){if(ac.toLowerCase()=="styleclass"){Z.setAttribute("class",ai[ac])}else{if(ac.toLowerCase()!="classid"){Z.setAttribute(ac,ai[ac])}}}}for(var ab in ag){if(ag[ab]!=Object.prototype[ab]&&ab.toLowerCase()!="movie"){e(Z,ab,ag[ab])}}aa.parentNode.replaceChild(Z,aa);X=Z}}return X}function e(Z,X,Y){var aa=C("param");aa.setAttribute("name",X);aa.setAttribute("value",Y);Z.appendChild(aa)}function y(Y){var X=c(Y);if(X&&X.nodeName=="OBJECT"){if(M.ie&&M.win){X.style.display="none";(function(){if(X.readyState==4){b(Y)}else{setTimeout(arguments.callee,10)}})()}else{X.parentNode.removeChild(X)}}}function b(Z){var Y=c(Z);if(Y){for(var X in Y){if(typeof Y[X]=="function"){Y[X]=null}}Y.parentNode.removeChild(Y)}}function c(Z){var X=null;try{X=j.getElementById(Z)}catch(Y){}return X}function C(X){return j.createElement(X)}function i(Z,X,Y){Z.attachEvent(X,Y);I[I.length]=[Z,X,Y]}function F(Z){var Y=M.pv,X=Z.split(".");X[0]=parseInt(X[0],10);X[1]=parseInt(X[1],10)||0;X[2]=parseInt(X[2],10)||0;return(Y[0]>X[0]||(Y[0]==X[0]&&Y[1]>X[1])||(Y[0]==X[0]&&Y[1]==X[1]&&Y[2]>=X[2]))?true:false}function v(ac,Y,ad,ab){if(M.ie&&M.mac){return}var aa=j.getElementsByTagName("head")[0];if(!aa){return}var X=(ad&&typeof ad=="string")?ad:"screen";if(ab){n=null;G=null}if(!n||G!=X){var Z=C("style");Z.setAttribute("type","text/css");Z.setAttribute("media",X);n=aa.appendChild(Z);if(M.ie&&M.win&&typeof j.styleSheets!=D&&j.styleSheets.length>0){n=j.styleSheets[j.styleSheets.length-1]}G=X}if(M.ie&&M.win){if(n&&typeof n.addRule==r){n.addRule(ac,Y)}}else{if(n&&typeof j.createTextNode!=D){n.appendChild(j.createTextNode(ac+" {"+Y+"}"))}}}function w(Z,X){if(!m){return}var Y=X?"visible":"hidden";if(J&&c(Z)){c(Z).style.visibility=Y}else{v("#"+Z,"visibility:"+Y)}}function L(Y){var Z=/[\\\"<>\.;]/;var X=Z.exec(Y)!=null;return X&&typeof encodeURIComponent!=D?encodeURIComponent(Y):Y}var d=function(){if(M.ie&&M.win){window.attachEvent("onunload",function(){var ac=I.length;for(var ab=0;ab<ac;ab++){I[ab][0].detachEvent(I[ab][1],I[ab][2])}var Z=N.length;for(var aa=0;aa<Z;aa++){y(N[aa])}for(var Y in M){M[Y]=null}M=null;for(var X in swfobject){swfobject[X]=null}swfobject=null})}}();return{registerObject:function(ab,X,aa,Z){if(M.w3&&ab&&X){var Y={};Y.id=ab;Y.swfVersion=X;Y.expressInstall=aa;Y.callbackFn=Z;o[o.length]=Y;w(ab,false)}else{if(Z){Z({success:false,id:ab})}}},getObjectById:function(X){if(M.w3){return z(X)}},embedSWF:function(ab,ah,ae,ag,Y,aa,Z,ad,af,ac){var X={success:false,id:ah};if(M.w3&&!(M.wk&&M.wk<312)&&ab&&ah&&ae&&ag&&Y){w(ah,false);K(function(){ae+="";ag+="";var aj={};if(af&&typeof af===r){for(var al in af){aj[al]=af[al]}}aj.data=ab;aj.width=ae;aj.height=ag;var am={};if(ad&&typeof ad===r){for(var ak in ad){am[ak]=ad[ak]}}if(Z&&typeof Z===r){for(var ai in Z){if(typeof am.flashvars!=D){am.flashvars+="&"+ai+"="+Z[ai]}else{am.flashvars=ai+"="+Z[ai]}}}if(F(Y)){var an=u(aj,am,ah);if(aj.id==ah){w(ah,true)}X.success=true;X.ref=an}else{if(aa&&A()){aj.data=aa;P(aj,am,ah,ac);return}else{w(ah,true)}}if(ac){ac(X)}})}else{if(ac){ac(X)}}},switchOffAutoHideShow:function(){m=false},ua:M,getFlashPlayerVersion:function(){return{major:M.pv[0],minor:M.pv[1],release:M.pv[2]}},hasFlashPlayerVersion:F,createSWF:function(Z,Y,X){if(M.w3){return u(Z,Y,X)}else{return undefined}},showExpressInstall:function(Z,aa,X,Y){if(M.w3&&A()){P(Z,aa,X,Y)}},removeSWF:function(X){if(M.w3){y(X)}},createCSS:function(aa,Z,Y,X){if(M.w3){v(aa,Z,Y,X)}},addDomLoadEvent:K,addLoadEvent:s,getQueryParamValue:function(aa){var Z=j.location.search||j.location.hash;if(Z){if(/\?/.test(Z)){Z=Z.split("?")[1]}if(aa==null){return L(Z)}var Y=Z.split("&");for(var X=0;X<Y.length;X++){if(Y[X].substring(0,Y[X].indexOf("="))==aa){return L(Y[X].substring((Y[X].indexOf("=")+1)))}}}return""},expressInstallCallback:function(){if(a){var X=c(R);if(X&&l){X.parentNode.replaceChild(l,X);if(Q){w(Q,true);if(M.ie&&M.win){l.style.display="block"}}if(E){E(B)}}a=false}}}}();
+// SS.thumbsOnDemand
+/**
+ * NS p/ controlar carregamento automático de imagens no scroll
+ * 
+ * @author Romano Augusto
+ * @since 18/10/2010
+ * @version 2.0
+ */
+SS.thumbsOnDemand = (function(conf) {
+ // Objeto de configuração
+ var _conf = {
+  // Objeto jQuery do elemento contendo as tags <img>
+  container: $(),
+  // Sensitividade p/ começar a fazer o carregamento de thumbs
+  threshold: 350,
+  // Atributo contendo o source da imagem
+  attr: 'longdesc',
+  // NameSpace p/ o evento scroll
+  scrollNS: 'thumbsOnDemand',
+  // Tempo padrão p/ esperar o scroll terminar e checar se as imagens estão visíveis
+  loadDelay: false,
+  // Flag de controle p/ a checagem de alteração no contâiner e refazer o cache de imagens
+  forceCheck: false,
+  // Flag indicando se a imagem a ser carregada é background-image(css) ou não(false)
+  isBgImage: false
+ };
+ // Mescla as configurações padrão, com as passadas por parâmetro
+ $.extend(_conf, conf || {});
+ // Se não existir o elemento container, sai da função retornando um init que não faz nada
+ if (_conf.container.length === 0) {
+  return {
+   init: function(){
+    // Função vazia
+   }
+  };
+ }
+ /**
+	 * Init do NS; Faz o bind de eventos scroll, de acordo com o browser
+	 * 
+	 * @author Romano Augusto
+	 * @since 18/10/2010
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ var _init = function(){
+  // Se o container possuir barra de rolagem, seta os eventos p/ scroll
+  if (_conf.temScroll) {
+   _conf.container
+    .bind('scroll.'+_conf.scrollNS, _setThumbContainer)
+   ;
+  }
+  window.aew = true;
+ },
+ /**
+	 * Init do NS; Faz o bind de eventos scroll, de acordo com o browser
+	 * 
+	 * @author Romano Augusto
+	 * @since 18/10/2010
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ _checkDOMChange = function(){
+  // Checa se teve alteração na extensão do container
+  var _lengthAtual = _conf.container.outerHeight();
+  if (_lengthAtual !== _conf.quantDOMChild) {
+   // Atualiza o length atual
+   _conf.quantDOMChild = _lengthAtual;
+   return true;
+  }
+  return false;
+ },
+ /**
+	 * Seta o thumbnail no caso de uso: container
+	 * 
+	 * @author Romano Augusto
+	 * @since 25/10/2010
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ _setThumbContainer = function(e) {
+  var
+   time = _conf.loadDelay,
+   timeout = false;
+  if (!time) {
+   time = _conf.container[0].scrollHeight / 5.8;
+   time = (time < 50? 50 : (time > 500? 500 : time));
+  }
+  // Seta o timeout p/ checar os thumbs visíveis na tela e no espaçamento
+  timeout = window.setTimeout(function() {
+   _loadThumbs();
+   window.clearTimeout(timeout);
+  }, Math.round(time));
+  e.stopPropagation();
+ },
+ /**
+	 * Seta o thumbnail no caso de uso: window
+	 * 
+	 * @author Romano Augusto
+	 * @since 25/10/2010
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ _setThumbWindow = function(){
+  var
+   // Propriedade do objeto global, contendo todos os contâineres de imagem
+   wcctod = window.SS_cctod.objs,
+   // Iterador
+   i = 0,
+   // Total de contâineres
+   tot_cctod = wcctod.length;
+  for (; i < tot_cctod; ++i) {
+   // Checa se o container está visível na tela e carrega os thumbs também visíveis
+   wcctod[i].loadThumbs();
+  }
+ },
+ /**
+	 * Busca as imagens que não foram carregadas ainda
+	 * 
+	 * @author Romano Augusto
+	 * @since 19/10/2010
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ _cacheImgs = function(force){
+  // Checa se antes, houve alteração no DOM do contâiner
+  if (force || _checkDOMChange()) {
+   _conf.imgsSemSrc = _conf
+     .container
+     .find('img')
+     .filter(function() { // Faz a busca pelas imagens, contendo o src vazio
+      return $(this).attr('src').length === 0;
+     })
+     .toArray();
+  }
+ },
+ /**
+	 * Carrega os thumbs, caso esteja visível em seu container, e este esteja visível na tela
+	 * 
+	 * @author Romano Augusto
+	 * @since 19/10/2010
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ _loadThumbs = function() {
+  var
+   // Imagens sem o src, cacheadas
+   imgs = _cacheImgs(_conf.forceCheck) || _conf.imgsSemSrc,
+   // Total de imagens sem src
+   imgLength = imgs.length,
+   // Iterador
+   i = 0,
+   // Distância do top do documento até a barra de rolagem
+   wScrollTop = $(window).scrollTop(),
+   // Imagem atual
+   img = false,
+   // Offset TOP da imagem atual
+   imgOTop = false,
+   // Altura da imagem atual
+   imgOHeight = false,
+   // Soma do offset top com a altura da imagem(o cálculo é feito no for abaixo)
+   imgOTop_imgOHeight = false,
+   // Objeto jQuery do container
+   container = _conf.container,
+   // Offset top do container
+   containerTop = container.offset().top,
+   // Espaço visível atual do container
+   espacoVisivel = containerTop + container.height(),
+   // Altura da rolagem
+   wHeight = $(window).height(),
+   // Soma da distância da barra de rolagem ao topo com a altura da rolagem
+   wScrollTop_wHeight = wScrollTop + wHeight,
+   // Cálculo da visibilidade do contâiner, na tela
+   visible = espacoVisivel > wScrollTop - _conf.threshold && containerTop - _conf.threshold < wScrollTop_wHeight,
+   // Objeto contendo o container e url de uma imagem css ou false
+   objBgImage = _conf.isBgImage
+   // Objeto jQuery das referências que terão o background-image setado
+   containerBg = false
+   // Length do containerBg
+   containerBgLength = false;
+  if (visible === true) {
+   if (objBgImage) {
+    containerBg = $(objBgImage.container);
+    containerBgLength = containerBg.length;
+    (containerBg.eq(0).css('background-image') === 'none' || containerBg.eq(containerBgLength / 2).css('background-image') === 'none') && containerBg.css('background-image', 'url('+objBgImage.url+')');
+    return;
+   }
+   for (; i < imgLength; ++i) {
+    img = $(imgs[i]);
+    imgOTop = img.offset().top;
+    imgOHeight = img.outerHeight();
+    imgOTop_imgOHeight = imgOTop + imgOHeight;
+    // Se o contâiner tiver scroll, checa se a imagem está visível dentro do mesmo
+    if (_conf.temScroll) {
+     visible = imgOTop - _conf.threshold < espacoVisivel && imgOTop_imgOHeight > containerTop - _conf.threshold;
+    } else { // Se não tiver scroll, checa de acordo com a visibilidade do scroll da tela
+     visible = imgOTop - _conf.threshold < wScrollTop_wHeight && imgOTop_imgOHeight > wScrollTop - _conf.threshold;
+    }
+    if (!visible) {
+     continue;
+    }
+    // Checa se a imagem possui o atributo que contém a url original da imagem
+    if (img.attr(_conf.attr)) {
+     img
+     .attr('src', img.attr(_conf.attr)) // Joga o endereço p/ o src
+     .removeAttr(_conf.attr) // Remove o atributo auxiliar
+     .css({ // Exibe a imagem
+       'visibility': 'visible'
+      ,'display': 'block'
+     });
+     // Remove a imagem do array(fila) de imagens e subtrai 1 do length do array de imagens sem src
+     _conf.imgsSemSrc.splice(i, 1) && --imgLength;
+    }
+   }
+  }
+ },
+ // Objeto de retorno do NS
+ objRetorno = {
+  init: function() {
+   _init();
+   return this;
+  },
+  loadThumbs: function() {
+   _loadThumbs();
+   return this;
+  },
+  conf: (function() {
+    var container = _conf.container;
+    // Adiciona mais propriedades
+    $.extend(_conf, {
+     // Extensão atual do container que sofre alterações DOM
+     quantDOMChild: container.outerHeight(),
+     // Checa se o container tem barra de rolagem visível
+     temScroll: container.css('overflow') === 'auto',
+     // Faz cache DOM das imagens com src vazio
+     imgsSemSrc: _cacheImgs(true)
+    });
+    if (_conf.temScroll) {
+     _conf.threshold = 100;
+    }
+    return _conf;
+   }())
+ },
+ _w_cctod = _w_objs = _w_controle = false;
+ _w_cctod = window.SS_cctod || {};
+ _w_objs = _w_cctod.objs || [];
+ _w_controle = _w_cctod.controle || {};
+ window.SS_cctod = window.SS_cctod || {
+  objs: [],
+  controle: {}
+ };
+ // Atribui o objeto thumbsOnDemand ao objeto tod, do window
+ _w_objs.push(objRetorno);
+ // "Singleton" p/ o objeto de intervalo, que checa se precisa carregar alguma imagem
+ if (!_w_controle.intervalo) {
+  _w_controle.intervalo = setInterval(function() {
+   _setThumbWindow();
+  }, 70);
+ }
+ // Após fazer as operações localmente, atualiza o objeto global(window)
+ $.extend(window.SS_cctod, {objs: _w_objs, controle: _w_controle});
+ // Reseta o evento scroll namespaçado p/ carregar os thumbs de cada container, registrado
+ $(window)
+  // unbind no evento "scroll"
+  .unbind('scroll.'+_conf.scrollNS)
+  // unbind no evento "resize"
+  .unbind('resize.'+_conf.scrollNS)
+  // bind no evento "scroll"
+  .bind('scroll.'+_conf.scrollNS, function() {
+   // Timeout do evento scroll
+   var timeout = false;
+   // Controle de scroll p/ não ficar chamando o método de load a toda hora
+   if (_w_controle.dando_scroll === true) {
+    return false;
+   }
+   // Seta o flag de que o scroll está acontecendo
+   _w_controle.dando_scroll = true;
+   // Seta o timeout p/ chamar a função de load dos thumbs
+   timeout = window.setTimeout(function() {
+    // Chama o método que checa se é possível carregar as imagens
+    _setThumbWindow();
+    // Reseta o flag de scroll
+    _w_controle.dando_scroll = false;
+    // Limpa o objeto de timeout
+    window.clearTimeout(timeout);
+   }, 50);
+  })
+  // bind no evento "scroll"
+  .bind('resize.'+_conf.scrollNS, _setThumbWindow);
+ return objRetorno;
+});
+// SS.mensagem
+function on( $elm ) {
+ $elm.show();
+}
+function off( $elm ) {
+ $elm.hide();
+}
+/**
+ * Namespace p/ controlar os formulários/divs de comentários
+ * 
+ * @author Romano Augusto
+ */
+SS.mensagem = (function() {
+ /**
+	 * Variáveis utilizadas em todo o escopo do NameSpace
+	 */
+ var
+   _boxAviso // Box de mensagens de aviso
+  ,_boxAvisoNovo // Box de mensagens de aviso p/ novo comentário
+  ,_tamMin = 1 // Tamanho mínimo de caracteres p/ o comentário
+  ,_c_form_captcha // Formulário de confirmação de captcha
+  ,_c_form_captcha_novo // Formulário de confirmação de captcha p/ novo comentário
+  ,_img_captcha // Imagem do captcha
+  ,_img_captcha_novo // Imagem do captcha p/ novo comentário
+  ,_c_form // Form de postagem do comentário
+  ,_form_enviar_comentario_novo // Form de envio de novo comentário
+  ,_qtd_like // Qtd de "like's" que um comentário recebeu
+  ,_qtd_dislike // Qtd de "dislike's" que um comentário recebeu
+  ,_limite_msg = 300 // Limite máximo de caracteres de cada mensagem
+ ;
+ /**
+	 * Init do NS; Controla e inicializa todos os eventos da div de comentários, e de seus filhos
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @return void
+	 */
+ var _init = function(tipo, idItem, modalidade, isModerador) {
+  // Thumbs dos comentários
+  SS.thumbsOnDemand({container: $('#comentarios > ul')}).init();
+  // Seta o tipo, idItem, modalidade
+  SS.mensagem.tipo = tipo;
+  SS.mensagem.idItem = idItem;
+  SS.mensagem.idItemOriginal = idItem;
+  SS.mensagem.modalidade = modalidade;
+  SS.mensagem.isModerador = isModerador;
+  // Quando a div tiver sido construída no DOM, executa
+  $(document).ready(function() {
+   var
+     resp_cancelar = $('#resp_comentario_cancelar') // Link de cancelar o comentário, que faz sumir todo o form
+    ,ct_responder = $('#c_tools > .responder') // Botão de responder um comentário
+    ,c_tools = $('#c_tools') // Div dos botões "responder", "marcar como span", etc
+    ,linkExcluirComment = $('#excluirComentario') // Link de exclusão de comentário
+    ,balaoCTools = $('#mod_title') // Elm mod_title, usado em balões
+    ,_balaoCTools = false//new SS.balao(balaoCTools)		// Balão p/ os botões "gostei", "não gostei", e "denunciar abuso"
+    ,descBotao = $('#desc_botao') // Span contendo a descrição do botão, no balão
+    ,likeComentario = $('#likeComentario') // Botão "gostei"
+    ,dislikeComentario = $('#dislikeComentario') // Botão "não gostei"
+    ,spamComentario = $('#spamComentario') // Botão "denunciar abuso"
+   ;
+   _boxAviso = $('#c_aviso'); // Seta o box de avisos
+   _boxAvisoNovo = $('#c_aviso_novo'); // Seta o box de avisos p/ comentários novos
+   _c_form = $('#c_form'); // Form de postagem do comentário
+   _c_form_captcha = $('#c_form_captcha'); // Formulário de confirmação de captcha
+   _c_form_captcha_novo = $('#c_form_captcha_novo'); // Formulário de confirmação de captcha p/ novo comentário
+   _img_captcha = $('#captcha'); // Imagem do captcha
+   _img_captcha_novo = $('#captcha_novo'); // Imagem do captcha p/ novo comentário
+   _form_enviar_comentario_novo = $('#form_enviar_comentario'); // Formulário de envio de novo comentário
+   _qtd_like = $('#qtd_like'); // Qtd de "like's" que um comentário recebeu
+   _qtd_dislike = $('#qtd_dislike'); // Qtd de "dislike's" que um comentário recebeu
+   $('#comentarios > ul > li > ul > li, #comentarios > ul > li').live('mouseover', function(e) {
+    var
+      li = $(this) // Li atual
+     ,li_atual = li // Cache do li atual
+     ,idLi = li_atual.attr('class').match(/_\d*\d/)[0].replace('_', '') // Id do <li>, contido no atributo classe
+     ,link_perfil = $(li_atual.children()[0]) // Link que leva p/ o perfil do usuário
+     ,pos = li.offset() // Coordenadas do posicionamento do li
+     ,avo = li.parent().parent() // Avô do node atual
+     ,avo_nodeName = avo[0].nodeName // nodeName do avô
+     ,diff = (avo_nodeName.toUpperCase() == 'LI'? avo.position().top : 0) // Diferença usada no posicionamennto de lis de respostas
+     ,pontos = /__-?\d_-?\d/.exec(li.attr('class'))[0].split('_') // Atributo rel do <li> contendo a qtd de pontos positivos/negativos, ganhos
+     ,pontos_pro = pontos_contra = 0
+    ;
+    /*
+				 *  REL = recado ativo (S) ou inativo (N)
+				 *  Se nao estiver ativo, nao mostra as opcoes de "RESPONDER" e "EXCLUIR"
+				 */
+    if ( li.attr('rel') === 'N' ){
+     e.stopPropagation();
+     return;
+    }
+    if (pontos) {
+     pontos_pro = pontos[2]; // Pontos positivados do comentário
+     pontos_contra = pontos[3]; // Pontos negativiados do comentário	
+    }
+    // Modalidade 2 = recados; Se for recado não tem like e dislike
+    if (SS.mensagem.modalidade !== 2) {
+     // Aplica valores de "like" e "dislike"
+     _qtd_like.html(pontos_pro);
+     _qtd_dislike.html(pontos_contra);
+    }
+    // Se tiver enviando alguma ação não reposiciona a c_tools
+    if (!_enviandoAcaoComments) {
+     // Ajusta o box de ferramentas de comentários
+     c_tools.css({
+      'top': pos.top + 13 + 'px'
+     });
+     // Aplica classe "on" de css no box
+     on(c_tools);
+     // Verifica se precisa colocar o link de excluir comentário(Não checa se for recado)
+     if (SS.mensagem.modalidade != 2) {
+      linkExcluirComment.css('display', ((SS.mensagem.modalidade != 2 && SS.mensagem.isModerador) || link_perfil.attr('rel') == SS.ccidbar.user.id? 'inline':'none'));
+     } else {
+      linkExcluirComment.css('display', 'inline');
+     }
+     likeComentario.hide();
+     dislikeComentario.hide();
+     spamComentario.hide();
+     // Desaparece com os botões que precisam de login, ou o usuário logado não pode interagir
+     if (SS.ccidbar.isLogged() && SS.ccidbar.user.id != link_perfil.attr('rel') && SS.mensagem.modalidade != 2) {
+      if (li.data('voto')) {
+       if (li.data('voto').attr('id') == likeComentario.attr('id')) {
+        dislikeComentario.show();
+       } else {
+        likeComentario.show();
+       }
+      } else {
+       likeComentario.show();
+      }
+      if (li.data('spam')) {
+       spamComentario.addClass('on');
+      } else {
+       spamComentario.removeClass('on');
+      }
+      spamComentario.show();
+      SS.mensagem.liAtualCTools = li;
+     }
+     // Checa qual é o li atual, dependendo do nível
+     if (avo_nodeName.toUpperCase() == 'LI') {
+      li = avo;
+      diff = 0;
+     }
+     // Botão de "responder" comentário
+     ct_responder.unbind('click').click(function() {
+      SS.mensagem.idItem = link_perfil.attr('rel');
+      _c_form_captcha.css('display', 'none'); // Esconde o form de captcha p/ reply's
+      SS.mensagem.ajustaLiSemAviso(); // Chama a função que reajusta a altura do li anterior
+      SS.mensagem.liAtual = li; // Seta o li atual
+      $('#quant_chars_resp').html(_limite_msg); // Reseta a quantidade de chars
+      pos = li.position(); // Pega a position atual do li
+      li.height(li.height() + _c_form.height());
+      _c_form.css('top', (pos.top + li.outerHeight()) - _c_form.outerHeight() - 10 + 'px'); // Posiciona o form de postagem
+      c_tools.css('top', pos.top + 13 + diff + 'px'); // Reposiciona o box de botões
+      _c_form.css('display','block'); // Exibe o form de postagem
+      // Limpa o form
+      $.scrollTo($('#ct_comentario_resp').val(''), 800, {
+       onAfter: function(e){
+        e.focus();
+       },
+       offset: {
+        top: -120,
+        left: 0
+       }
+      });
+      // Adiciona o id do comentário pai
+      $('#id_comentario_pai').val(idLi);
+      return false;
+     });
+     // Link de excluir comentário
+     linkExcluirComment.unbind('click').click(function() {
+      _acaoComentario('e', idLi);
+      return false;
+     });
+     // Botão "Like" do comentário
+     likeComentario.unbind('click').click(function() {
+      _acaoComentario('v', idLi, 1);
+      return false;
+     });
+     // Botão "Dislike" do comentário
+     dislikeComentario.unbind('click').click(function() {
+      _acaoComentario('v', idLi, -1);
+      return false;
+     });
+     // Botão "Marcar como spam"
+     spamComentario.unbind('click').click(function() {
+      _acaoComentario('s', idLi);
+      return false;
+     });
+     // Link cancelar p/ resposta de comentário
+     resp_cancelar.unbind('click').click(function() {
+      // Seta classe css "off" p/ o li atual
+      //off(SS.mensagem.liAtual);
+      // Chama a função que reajusta o li atual, caso ele esteja com a altura alterada, por causa do box de avisos
+      SS.mensagem.ajustaLiSemAviso();
+      // Esconde o form de postagem
+      _c_form.css('display','none');
+      return false;
+     });
+    }
+    e.stopPropagation();
+      });
+   var _unbindPaginacao = false;
+   $('#comments_exibindo > b').each(function(){
+    if($(this).html() == $(this).siblings().eq(0).html()){
+     _unbindPaginacao = true;
+     return false;
+    }
+   });
+   // Link "ver todos os comentários"
+   $('#comments_ver_todos').click(function(){
+    // Limite de 500 comentários por vez
+    _unbindPaginacao || _getAjaxComments(500);
+    return false;
+   });
+   // Link "mostrar mais comentários"
+   $('#cf_mais').click(function(){
+    _unbindPaginacao || _getAjaxComments();
+    return false;
+   });
+   // Ao sair de todo o escopo de comentários, seta classe css "off" p/ o box de botões
+   var $_containerComentarios = $('#comentarios > ul');
+   $_containerComentarios.live('mouseleave', function(e) {
+    e.stopPropagation();
+    var offset = $_containerComentarios.offset();
+    if (e.pageX < offset.left || e.pageX > offset.left + $_containerComentarios.width() || e.pageY < offset.top || e.pageY > offset.top + $_containerComentarios.outerHeight()) {
+     off(c_tools);
+    }
+   });
+   // Link trocar imagem do captcha
+   $('a.reload').click(function(){
+    var
+      img_captcha = $(this).siblings().filter('img')
+     ,url = img_captcha.attr('src');
+    ;
+       img_captcha.attr('src', url.replace(/rand=\d.*\d/.exec(url), 'rand='+Math.random()));
+       return false;
+   });
+   // Associa o enter do input de captcha ao click do "enviar captcha(OK)"
+   $('input.verif_captcha').keydown(function(e){
+       if(e.keyCode == 13){
+           $(this).parent().parent().find('a.enviar_captcha').click();
+           return false;
+       }
+   });
+   // Enviar captcha
+   $('a.enviar_captcha').die('click').live('click', function(){
+    var
+      id_comentario_pai
+     ,novo_comentario
+     ,reply
+     ,verificacao
+    ;
+    if($(this).parent().attr('id') == 'c_form_captcha_novo'){
+     novo_comentario = $('#novo_comentario').val();
+     reply = false;
+     verificacao = $('#verificacao_novo').val();
+     SS.mensagem.idItem = SS.mensagem.idItemOriginal;
+    }else{
+     novo_comentario = $('#ct_comentario_resp').val();
+     reply = true;
+     id_comentario_pai = $('#id_comentario_pai').val();
+     verificacao = $('#verificacao').val()
+    }
+    // Se for recado... o idItem vai ser sempre o id do usuário da página de recado(Se não for owner)
+    if(SS.mensagem.modalidade == 2 && SS.ccidbar.user.id != SS.mensagem.idItemOriginal){
+     SS.mensagem.idItem = SS.mensagem.idItemOriginal;
+    }
+    $.ajax({
+      type: 'GET'
+     ,url: '/ajax/mensagem.php'
+     ,data: 'a=c&t='+SS.mensagem.tipo+'&i='+SS.mensagem.idItem+'&nc='+novo_comentario+'&icp='+(id_comentario_pai || '')+'&verificacao='+verificacao+'&path='+window.location.pathname
+     ,dataType: 'json'
+     ,success: function(response){
+      SS.mensagem.trataRetornoInsercaoMsg(response, reply);
+     }
+     ,error: function() {}
+    });
+    return false;
+   });
+   // Troca a cor da quantidade de caracteres, de acordo com o número de caracteres digitados
+   $('textarea.ct_comentario').unbind('keyup').keyup(function(){
+    var
+      textArea = $(this) // Objeto textArea atual
+     ,quant = _limite_msg - textArea.val().length // Quantidade de caracter atual
+     ,cor = '#D00' // Vermelho claro
+     ,quant_chars = textArea.next() // Span contendo a exibição da quantidade de caracteres atual
+     ,botaoSubmit = (textArea
+                     .parent().parent().find('.bt')) // Submit do form
+    ;
+    if (quant > 10) {
+     cor = '#CCC'; // Cinza
+    } else if(quant > 0) {
+     cor = '#600'; // Vermelho escuro
+    }
+    // Se a quantidade de chars passar de _limite_msg, desabilita o botão de enviar
+    botaoSubmit.attr('disabled', (quant < 0? 'disabled':''));
+    // Troca a cor do span
+    quant_chars.html(quant).attr('style', 'color: ' + cor);
+   });
+   // Faz o envio do comentário, por AJAX
+   $('#comentarios .enviar_comentario').die('click').live('click', function(){
+    var
+      bt_resp = $(this)
+     ,logado = bt_resp.parent().hasClass('c_login')
+     ,inputs = bt_resp.siblings().filter('div.div').children()
+     ,dados
+     ,reply
+     ,comentario
+    ;
+    if (bt_resp.attr('id') == 'enviar_comentario') {
+     SS.mensagem.novoComentario = true;
+     comentario = $('#novo_comentario').val();
+     SS.mensagem.idItem = SS.mensagem.idItemOriginal;
+    } else {
+     SS.mensagem.novoComentario = false;
+     comentario = $('#ct_comentario_resp').val();
+     // Se for modalidade comentário, o idItem vai ser o idItemOriginal(id que vem do php)
+     if (SS.mensagem.modalidade == 1) {
+      SS.mensagem.idItem = SS.mensagem.idItemOriginal;
+     }
+    }
+    // Valida os comentários, primeiro
+    if (!_validaCampoComentario(comentario)) return false;
+    // Pega os dados
+    dados = bt_resp.parent().serialize();
+    // Desabilita o botão enquanto estiver fazendo o AJAX de envio
+    bt_resp.val('aguarde...').attr('disabled', 'disabled');
+    reply = /icp=\d+/.test(dados);
+    SS.ccidbar.logged(function() {
+               $.ajax({
+       type: 'GET'
+      ,url: '/ajax/mensagem.php'
+      ,data: 'a=c&t='+SS.mensagem.tipo+'&i='+SS.mensagem.idItem+'&'+dados
+      ,dataType: 'json'
+      ,success: function(response){
+       SS.mensagem.trataRetornoInsercaoMsg(response, reply);
+      }
+      ,complete: function(){
+       // Habilita o botão de enviar comentário
+       $('#enviar_comentario').val('enviar resposta').removeAttr('disabled');
+       // Habilita o botão de enviar resposta ao comentário
+       $('#enviar_comentario_resp').val('enviar resposta').removeAttr('disabled');
+      }
+      ,error: function() {}
+     });
+             }, {
+                 element: bt_resp,
+                 arrow: 'bottom',
+                 position: 'top'
+             });
+    return false;
+   });
+  });
+ },
+ /**
+	 * Pega um bloco de comentários via AJAX e monta-o na árvore DOM
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param int limite Limite máximo de registros a serem retornados
+	 * @return void
+	 */
+ _getAjaxComments = function(limite){
+  var
+   limiteURL = '&l=' + (typeof limite != 'undefined'? limite:limite = 10),
+   // Pega a última thread impressa na tela
+   lastThread = $('#comentarios > ul > li'),
+   lastThread = lastThread.eq(lastThread.length -1),
+   // Pega o lastIdThread
+   lastIdThread = lastThread.attr('class').match(/_\d*\d/)[0].replace('_', ''),
+   // Total de comentários exibidos na tela, até então
+   totComments = $('#comentarios > ul li').length
+  ;
+  $.ajax({
+    url: '/ajax/mensagem.php'
+   //,data:	'a=p&pa='+(SS.mensagem.pagComentarios + 1)+limiteURL+'&t='+SS.mensagem.tipo+'&i='+SS.mensagem.idItemOriginal+'&lt='+lastIdThread+'&tot='+totComments
+   //,data:	'a=p&pa='+(SS.mensagem.pagComentarios + 1)+limiteURL+'&t='+SS.mensagem.tipo+'&i='+SS.mensagem.idItemOriginal+'&lt='+lastIdThread
+   ,data: 'a=p'+limiteURL+'&t='+SS.mensagem.tipo+'&i='+SS.mensagem.idItemOriginal+'&lt='+lastIdThread
+   ,dataType: 'json'
+   ,beforeSend: function(){
+    // põe o loading
+    //SS.util.addGifLoading($('#comentarios > #c_fim'));
+   }
+   ,success: function(response){
+    try{
+     if (response.status == 0) {
+      if (response.con.co) {
+       var
+         comments = response.con.co
+        ,liPais = []
+        ,lisFilhos = []
+        ,i
+        ,f
+       ;
+       for (i in comments) {
+        lisFilhos = [];
+        // Filho com pai já impresso na tela
+        if (typeof comments[i].c == 'undefined' && typeof comments[i].f != 'undefined') {
+         for (f in comments[i].f) {
+          lisFilhos.push(SS.mensagem.getLiComentario(comments[i].f[f]));
+         }
+         var
+           listaPai = '#comentarios > ul > li._'+i
+          ,listaPaiFilhos = $(listaPai+' > ul')
+          ,filhos = lisFilhos.join('')
+         ;
+         // Não dá append aninhado se for recados
+         if (SS.mensagem.modalidade != 2){
+          if (listaPaiFilhos.length == 0) {
+           $(listaPai).append('<ul>'+filhos+'</ul>');
+          } else {
+           listaPaiFilhos.append(filhos);
+          }
+         }
+        } else {
+         // Filho sem o pai já impresso na tela
+         for (f in comments[i].f) {
+          lisFilhos.push(SS.mensagem.getLiComentario(comments[i].f[f]));
+         }
+         var filhinhos = lisFilhos.join('');
+         liPais.push(SS.mensagem.getLiComentario(comments[i], (filhinhos.length > 0? '<ul>' + filhinhos + '</ul>' : filhinhos)));
+        }
+       }
+       if (liPais.length > 0) {
+        $('#comentarios > ul').append(liPais.join(''));
+       }
+       // Passa a página
+       SS.mensagem.pagComentarios += 1;
+       // Altera o total exibido
+       SS.mensagem.alteraTotalComments(response.con.tc, false);
+      }
+     }
+    }catch(e){}
+   }
+   ,error: function() {}
+   ,complete: function(){
+    // Retira o loading
+    SS.util.removeGifLoading($('#comentarios > #c_fim'));
+   }
+  });
+ },
+ /**
+	 * Faz checagens do campo de comentários
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param string com Comentário digitado
+	 * @return boolean true|false em caso de sucesso/falha
+	 */
+ _validaCampoComentario = function(com){
+  var msg;
+  // Checa o tamanho mínimo
+  if (com.length < _tamMin) {
+   msg = _getErrorMsg(-1);
+  // Checa URL pelo prefixo e sufixo
+  } else if(/(((https?|ftp|gopher|telnet|file|notes|ms-help):((\/\/)|(\\\\)))|www\.)[\w\d:#@%\/;$()~_?\+-=\\\.&]*/i.test(com) || /\.(com|net|org|br)/i.test(com)) {
+   msg = _getErrorMsg(-3);
+  } else if (com.length > 300) {
+   msg = 'Seu comentário não pode conter mais que 300 caracteres.';
+  }
+  if(msg){
+   return _setMsgAlert(msg);
+  }
+  return true;
+ },
+ /**
+	 * Seta uma mensagem qualquer no box de avisos
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param string msg Mensagem a ser setada no box de aviso
+	 * @return void
+	 */
+ _setMsgAlert = function(msg) {
+  // PROVISÓRIO:
+  alert(msg);
+  return;
+  // Se for reply
+  if(!SS.mensagem.novoComentario){
+   var
+     li = SS.mensagem.liAtual
+    ,liHeight = li.height()
+    ,isHidden = _boxAviso.is(':hidden')
+    ,avisoHeightAnt = _boxAviso.css('display', 'none').outerHeight()
+    ,avisoHeight = _boxAviso.html(msg).outerHeight() // Joga a mensagem no innerHTML e pega a altura
+    ,diff = (isHidden? avisoHeight: avisoHeight - avisoHeightAnt)
+    ,liNewHeight = liHeight + diff
+   ;
+   // Se altura do li já estiver ajustada, dá fadeIn no aviso p/ destaque
+   if(liNewHeight == liHeight){
+    _boxAviso.fadeIn(400);
+   }else{ // Senão, ajusta o li e depois dá fadeIn
+    li.animate({
+        height: liHeight + diff
+    }, {
+         duration: 500
+        ,complete: function(){
+      _boxAviso.fadeIn(400);
+        }
+    });
+   }
+   // Seta a altura atual do box de aviso
+   SS.mensagem.avisoHeightLiAtual = avisoHeight;
+   // Chama função p/ reajustar a altura do li e sumir com o aviso, no click
+   _boxAviso
+    .die('click')
+    .live('click', function(){
+     $('#resp_comentario_cancelar').click();
+    });
+   ;
+   setTimeout(function(){
+    _boxAviso.click();
+   }, 5000);
+  }else{ // Interações de novos comentários/recados
+   _boxAvisoNovo
+    .html(msg)
+    .css('display', 'none')
+    .fadeIn(400)
+    .die('click')
+    .live('click', function(){
+     _boxAvisoNovo.css('display', 'none');
+     return false;
+    })
+   ;
+   setTimeout(function(){
+    _boxAvisoNovo.fadeOut(400);
+   }, 5000);
+  }
+  return false;
+ },
+ /**
+	 * Ajusta a altura do li atual, caso o box de aviso esteja ativo
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @return false
+	 */
+ _ajustaLiSemAviso = function(delay) {
+  var
+    li = SS.mensagem.liAtual
+   //,avisoHeight	= SS.mensagem.avisoHeightLiAtual
+   ,avisoHeight = (_c_form.is(':hidden')? 0 : _c_form.outerHeight() + ( _c_form_captcha.is(':visible')? 6 : 0 ))
+   ,isHidden = _boxAviso.is(':hidden')
+  ;
+  /*if(!li || isHidden)
+			return false;
+			*/
+  if (!li) return false;
+  if (typeof delay == 'undefined') {
+   _boxAviso.css('display', 'none');
+   li.height(li.height() - avisoHeight);
+  } else {
+   setTimeout(function(){
+    _boxAviso.fadeOut(400, function(){
+     li.height(li.height() - avisoHeight);
+    });
+   }, delay);
+  }
+  return false;
+ },
+ /**
+	 * Monta o elemento <li> contendo as informações do usuário e comentário
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param obj com Objeto contendo os informações do comentário
+	 * @param string append string opcional, a ser inserida no final do elemento
+	 * @return string elemento li em formato string
+	 */
+ _getLiComentario = function(com, append) {
+  try{
+   return ['<li class="_'+com.id+' __'+(com.pp? com.pp : 0)+'_'+(com.pc? com.pc : 0)+'" rel="S">'
+             , '<a rel="'+com.idu+'" href="/usuario/'+com.idu+'/" class="c_user"><img alt="',stripslashes(com.no),'" src="" longdesc="',com.a,'" width="25" height="25" style="visibility: hidden" />',stripslashes(com.no),'</a>'
+             , '<small>Postado em '+com.h+'</small>'
+             , '<blockquote>'+stripslashes(com.c)+'</blockquote>'
+             , (typeof append != 'undefined'? append: '')
+             ,'</li>'].join('');
+  }catch(e){}
+ },
+ /**
+	 * Altera o total de comentários
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param int diff diferença a ser alterada(p/ mais ou p/ menos)
+	 * @param boolean alteraTotalGeral flag p/ indicar se o total geral precisa ser alterado(como em caso de exclusão ou inserção)
+	 * @return void
+	 */
+ _alteraTotalComments = function(diff, alteraTotalGeral) {
+  var
+    span_total_comentarios = $('.com_total_geral') // Span exibindo o total de comentários(fica acima do form de comentários)
+   ,total_consulta = $('#com_total_consulta') // <b> que define o total exibido
+//			,diff					= parseInt(diff.replace('.', ''), 10)
+   ,diff = parseInt(diff, 10) // Ate o momento a variavel diff e sempre -1 e dava erro no replace
+   ,span_total_html = span_total_comentarios.html() || ''
+   ,total_comentarios = parseInt(span_total_html.replace('.', ''), 10)
+   ,total_consulta_html = total_consulta.html() || ''
+   ,novoTotalConsulta = parseInt(total_consulta_html.replace('.', ''), 10) + diff
+   ,novo_total = total_comentarios + diff
+  ;
+  // Altera o total exibido
+  total_consulta.html((novoTotalConsulta + '').replace(/\B(?=(?:\d{3})+(?!\d))/g, '.'));
+  // Altera o total geral, se necessário
+  if (alteraTotalGeral) {
+   novo_total = (novo_total + '').replace(/\B(?=(?:\d{3})+(?!\d))/g, '.');
+   span_total_comentarios.html('('+(novo_total)+')');
+   $('.com_total_geral').html(novo_total);
+  }
+  // Desabilita as paginações, quando chegar no limite máximo
+  if (total_consulta.html() == $('.com_total_geral').html()) {
+   $('#cf_mais').addClass('bt_off').unbind('click').click(function() {
+    return false;
+   });
+   $('#comments_ver_todos').addClass('off').unbind('click').click(function() {
+    return false;
+   });
+  }
+ },
+ // Flag de controle p/ o envio de qualquer ação p/ os comentários
+ _enviandoAcaoComments = false,
+ /**
+	 * Controla o "gostar" e "não gostar" do comentário, "excluir" e "denunciar abuso" p/ usuário logado
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param string acao ação a ser executada
+	 * @param int idComentario id do comentário
+	 * @param int pontos Parâmetro obrigatório somente quando a ação for igual a "votar"
+	 * @param boolean alteraTotalGeral flag p/ indicar se o total geral precisa ser alterado(como em caso de exclusão ou inserção)
+	 * @return void
+	 */
+ _acaoComentario = function(acao, idComentario, pontos){
+  if ( _enviandoAcaoComments ){ return; }
+  /*
+		 * ACAO (e) = EXCLUIR
+		 */
+  if ( acao === 'e' && !confirm('Deseja excluir o comentário?') ){ return; }
+  var urlDados = 'a='+acao+'&ic='+idComentario+'&t='+SS.mensagem.tipo+'&i='+SS.mensagem.idItem;
+  if (acao == 'v') { urlDados += '&pon=' + pontos; }
+  urlDados += '&path='+window.location.pathname;
+  $.ajax({
+    url: '/ajax/mensagem.php'
+   ,data: urlDados
+   ,dataType: 'json'
+   ,beforeSend: function(){
+    _enviandoAcaoComments = true;
+   }
+   ,success: function(response){
+    var status = parseInt(response.status);
+    switch(status){
+     case -1: // Erro ponto positivo
+     break;
+     case 1: // Primeiro voto; sendo ele positivo
+     case 2: // Primeiro voto; sendo ele negativo
+     case -5: // Cancela voto positivo; voto negativo
+     case -6: // Cancela voto negativo; voto positivo
+      var
+        comentario = $('li._'+idComentario)
+       ,pontos = /__-?\d_-?\d/.exec(comentario.attr('class'))[0].split('_')
+       ,pontos_pro = parseInt(pontos[2])
+       ,pontos_contra = parseInt(pontos[3])
+       ,like = $('#likeComentario')
+       ,dislike = $('#dislikeComentario')
+      ;
+      if(status == 1)
+       pontos_pro++;
+      else if(status == 2)
+       pontos_contra++;
+      else if(status == -5){
+       pontos_pro--;
+       pontos_contra++;
+      }else{
+       pontos_pro++;
+       pontos_contra--;
+      }
+      // Normalize nos pontos computados
+      pontos_pro = (pontos_pro < 0? 0 : pontos_pro);
+      pontos_contra = (pontos_contra < 0? 0 : pontos_contra);
+      // Altera na hora o span de like/dislike
+      like
+       .removeClass('ct_on')
+       .find('#qtd_like')
+       .html(pontos_pro)
+      ;
+      dislike
+       .removeClass('ct_on')
+       .find('#qtd_dislike')
+       .html(pontos_contra)
+      ;
+      // Ponto pro
+      if(status == 1 || status == -6){
+       like.hide();
+       dislike.show();
+       like.addClass('ct_on');
+       // Adiciona ao data o controle de voto já computado
+       comentario.data('voto', like);
+      }else{ // Ponto contra
+       dislike.hide();
+       like.show();
+       dislike.addClass('ct_on');
+       // Adiciona ao data o controle de voto já computado
+       comentario.data('voto', dislike);
+      }
+      // Adiciona o controle de quantos pontos_pro e contra o comentário possui
+      comentario.attr('class', comentario.attr('class').replace(/__-?\d_-?\d/, '__'+pontos_pro+'_'+pontos_contra));
+     break;
+     case -2: // Erro ponto negativo
+     break;
+     case 3: // Spam
+      // Aciona o botão de spam
+      var botaoSpam = $('#spamComentario');
+      botaoSpam.addClass('ct_on');
+      // Adiciona ao data do elemento atual o controle de denúncia já computada
+      $('li._'+idComentario).data('spam', botaoSpam);
+     break;
+     case -3: // Erro spam
+     break;
+     case 4: // Excluir comentário
+      if ( response.subs ){
+       _alteraLiExcluido(idComentario, 'Coment&aacute;rio removido.');
+      }else{
+       _c_form.css('display', 'none'); // Esconde o formulario de resp(segurança)
+       $('li._'+idComentario).remove(); // Remove o comentario da lista
+       _alteraTotalComments(-1, true); // Subtrai 1 no total exibido, e total geral(true)
+      }
+      off($('#c_tools')); // Esconde a toolbar
+     break;
+     case -4: // Erro excluir comentário
+     break;
+     default:
+      SS.mensagem.liAtualCTools.data('voto', $('#likeComentario'));
+      $('#likeComentario').hide();
+      $('#dislikeComentario').show();
+     break;
+    }
+   }
+   ,error: function() {}
+   ,complete: function(){
+    _enviandoAcaoComments = false;
+   }
+  });
+ },
+ /**
+	 * Altera a mensagem do comentário p/ "Comentário removido", caso o msm tenha tido o comentário alterado. Ou exclui o li, caso não tenha filhos
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param int id Id do comentário excluido
+	 * @param string msg Mensagem a ser substituída no li do comentário
+	 * @return void
+	 */
+ _alteraLiExcluido = function(id, msg){
+  var elm = '#comentarios > ul li._'+id;
+  // Se mensagem for diferente de vazio, seta-a e sai da função
+  if ( msg != '' ){
+   $(elm + ' > blockquote').html(msg);
+   $(elm).attr('rel', 'N'); // REL = recado ativo (S) ou inativo (N)
+   return;
+  }
+  // Se a mensagem for vazia, deleta o li e seus filhos, caso haja
+  var
+     li = $(elm)
+   ,avoNode = li.parent().parent()
+  ;
+  // Se for filho, apaga direto do pai
+  if ( avoNode[0].nodeName.toUpperCase() == 'UL' ){
+   avoNode.remove();
+  }else{ // Deleta o li, sem filhos
+   li.remove();
+  }
+ },
+ /**
+	 * Retorna a descrição do erro de acordo com o código
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param int err_code Código do erro
+	 * @return string Descrição do erro
+	 */
+ _getErrorMsg = function(err_code){
+  switch(parseInt(err_code)){
+   case -1:return 'O comentário precisa conter no mínimo '+_tamMin+' caracter(es)!';
+   case -2:return 'O seu último comentário é idêntico ao que você está tentando enviar!';
+   case -3:return 'O comentário não pode conter URL\'S!';
+   case -4:return 'Você acabou de postar um comentário em menos de 15s! Por favor, aguarde este intervalo.';
+   case -5:return 'captcha';
+   case -6:return 'Você precisa estar logado p/ executar essa operação';
+  }
+ },
+ /**
+	 * Trata o retorno da requisição ajax p/ postagem de comentários
+	 * 
+	 * @author Romano Augusto
+	 * @version 1.0
+	 * @access private
+	 * @param json response JSON de resposta à requisição AJAX
+	 * @param boolean reply Controle p/ checar se o cadastro que foi feito é um reply ou comentário de nível 0
+	 * @return void
+	 */
+ _trataRetornoInsercaoMsg = function(response, reply){
+  /*
+		if(SS.mensagem.modalidade == 1){
+			$('#resp_comentario_cancelar').click();
+		}
+		*/
+  // Descrição do código de erro, em caso de insucesso
+  var descCode;
+  // SUCESSO
+  if(response.status >= 0){
+   // Altera o novo total
+   SS.mensagem.alteraTotalComments(1, true);
+   // Chama a função que reajusta a altura do li anterior
+   SS.mensagem.ajustaLiSemAviso();
+   // Insere o novo comentário na lista
+   var
+     comments = response.co
+    ,li = ['<li class="_'+comments.id+' __0_0" rel="S">'
+                , '<a rel="'+SS.ccidbar.user.id+'" href="/usuario/'+comments.idu+'/" class="c_user"><img alt="'+stripslashes(comments.no)+'" src="'+comments.a+'" width="25" height="25" />'+stripslashes(comments.no)+'</a>'
+                , '<small>Postado em '+comments.h+'</small>'
+                , '<blockquote>'+stripslashes(replaceAll(comments.c, '\n', '<br />'))+'</blockquote>'
+                ,'</li>'
+         ].join('')
+    ,ul
+   ;
+   // Verifica se é um comentário nível 0
+   if(reply == false){
+    // Seleciona a lista principal
+    ul = $('#comentarios > ul');
+    if(ul.length == 0)
+     ul = $('<ul></ul>').appendTo('#comentarios');
+    // Limpa o textarea
+    $('#novo_comentario').val('');
+    // Reseta o limite de caracteres
+    $('#quant_chars_novo').html(_limite_msg);
+    // Exibe o botão "acesse p/ comentar"
+    $('#ct_bt').css('display','block');
+    // Adiciona o novo comentário na lista
+    ul.prepend(li);
+   }else{ // Se não for nível 0, é um reply
+    // Seleciona a lista onde estão os replys de determinado comentário, se não existir... cria-a
+    var
+      liComentarioPai = '#comentarios > ul li._'+$('#id_comentario_pai').val()
+     ,paiLiComentarioPai = $(liComentarioPai).parent()
+    ;
+    // Se for reply de nível maior que 1
+    if(paiLiComentarioPai.parent()[0].nodeName.toUpperCase() == 'LI')
+     ul = paiLiComentarioPai;
+    else{
+     // Pega a lista dos replys do comentário pai
+     ul = $(liComentarioPai +' > ul');
+     // Se não existir, cria-a
+     if(ul.length == 0){
+      $(liComentarioPai).append('<ul></ul>');
+      ul = $(liComentarioPai +' > ul');
+     }
+    }
+    // Limpa o textarea
+    $('#ct_comentario_resp').val('');
+    // Reseta o limite de caracteres
+    $('#quant_chars_resp').html(_limite_msg);
+    // Adiciona o novo comentário na lista
+    ul.append(li);
+   }
+   // Reajusta a altura do li, se for necessário
+   if(SS.mensagem.liAtual != false){
+    SS.mensagem.liAtual.css('height', '');
+   }
+   // Seta o novo liAtual
+   SS.mensagem.liAtual = $(li);
+   // Seta classe css "off" p/ todos os li
+   //off('#comentarios li');
+   // Esconde o formulário de reply
+   _c_form.css('display', 'none');
+   // Esconde os boxes de aviso
+   _boxAvisoNovo
+    .css('display', 'none');
+   _boxAviso
+    .css('display', 'none');
+   SS.mensagem.setMsgAlert('Seu comentário foi enviado com sucesso.');
+   if (SS.mensagem.novoComentario) {
+    _form_enviar_comentario_novo.show();
+   } else if (SS.mensagem.modalidade == 2) {
+    $.scrollTo(SS.mensagem.liAtual, 800);
+   }
+  } else {
+   descCode = SS.mensagem.getErrorMsg(response.status);
+   // Se a descrição do código for "captcha", mostra o form
+   if(descCode == 'captcha'){
+    // É novo comentário?
+    if ( !SS.mensagem.novoComentario ){
+     _boxAvisoNovo.hide(); // Esconde os avisos
+     _c_form_captcha_novo.css('display', 'none'); // Esconde o formulário de captcha p/ novo comentário, caso o msm ainda esteja aberto
+     $('#verificacao').val('').focus(); // Limpa o input de código captcha
+     _img_captcha.attr('src', response.url_captcha+'?rand='+Math.random()); // Seta o novo src de imagem
+     // Se o form não estiver sendo exibido: reposiciona e exibe
+     if(_c_form_captcha.is(':hidden')){
+      var top = _c_form.position().top; // Reposiciona o formulário de captcha
+      _c_form_captcha.css('top', top).show();
+      SS.mensagem.liAtual.height(SS.mensagem.liAtual.height() + _c_form_captcha.outerHeight() + 10); // Ajusta a altura do li
+     }
+    }else{
+     _boxAviso.hide(); // Esconde os avisos
+     _c_form_captcha.css('display', 'none'); // Esconde o formulário de captcha p/ reply's, caso o msm ainda esteja aberto
+     $('#verificacao_novo').val('').focus(); // Limpa o input de código captcha
+     _img_captcha_novo.attr('src', response.url_captcha+'?rand='+Math.random()).show(); // Seta o novo src de imagem
+     // Se o form não estiver sendo exibido: reposiciona e exibe
+     if(_c_form_captcha_novo.is(':hidden')){
+      _c_form_captcha_novo.show();
+     }
+    }
+   }
+   else{
+    SS.mensagem.setMsgAlert(descCode);
+   }
+  }
+  // Se não for captcha, previne e esconde o formulário do msm
+  if (descCode != 'captcha') {
+   // Checa se o form de captcha a ser escondido é o de novo comentário ou reply's
+   if (!SS.mensagem.novoComentario) {
+    _c_form_captcha.hide();
+   } else {
+    _c_form_captcha_novo.hide();
+   }
+  }
+ }
+ return {
+  init: function(tipo, idItem, modalidade, isMod){
+   try{
+    _init(tipo, idItem, modalidade, isMod);
+   }catch(e){}
+   return this;
+  },
+  getLiComentario: function(com, append){
+   try{
+    return _getLiComentario(com, append);
+   }catch(e){}
+   return this;
+  },
+  alteraTotalComments: function(diff, alteraTotalGeral){
+   try{
+    _alteraTotalComments(diff, alteraTotalGeral);
+   }catch(e){}
+   return this;
+  },
+  ajustaLiSemAviso: function(delay){
+   _ajustaLiSemAviso(delay);
+   return this;
+  },
+  setMsgAlert: function(msg){
+   _setMsgAlert(msg);
+   return this;
+  },
+  getErrorMsg: function(err_code){
+   return _getErrorMsg(err_code);
+  },
+  trataRetornoInsercaoMsg: function(response, reply){
+   _trataRetornoInsercaoMsg(response, reply);
+   return this;
+  },
+  pagComentarios: 1,
+  novoComentario: false,
+  liAtual: false,
+  avisoHeightLiAtual: 0,
+  idItem: false,
+  idItemOriginal: false,
+  tipo: false,
+  modalidade: false,
+  isModerador: false,
+  liAtualCTools: false
+ }
+})();
+// Plugin Mouse Stop
+(function($) {
+ // public vars
+ $.mousestopDelay = 50;
+ // special event
+ $.event.special.mousestop = {
+  setup: function(data) {
+   $(this).data('mousestop', {delay: data})
+       .bind('mouseenter.mousestop', mouseenterHandler)
+       .bind('mouseleave.mousestop', mouseleaveHandler);
+  },
+  teardown: function() {
+   $(this).removeData('mousestop')
+          .unbind('.mousestop');
+  }
+ };
+ // private methods
+ function mouseenterHandler() {
+  if (typeof this.timeout === 'undefined') {
+   this.timeout = null;
+  }
+  var elem = $(this),
+   data = elem.data('mousestop'),
+   delay = data.delay || $.mousestopDelay;
+  elem.bind('mousemove.mousestop', function() {
+   clearTimeout(this.timeout);
+   this.timeout = setTimeout(function() {
+    elem.trigger('mousestop');
+   }, delay);
+  });
+ };
+ function mouseleaveHandler() {
+  var elem = $(this);
+  elem.unbind('mousemove.mousestop');
+  clearTimeout(this.timeout);
+ };
+ // shorthand alias
+ $.fn.mousestop = function(data, fn) {
+  if (fn == null) {
+   fn = data;
+   data = null;
+  }
+  return arguments.length > 0 ? this.bind('mousestop', data, fn) : this.trigger('mousestop');
+ };
+})(jQuery);
