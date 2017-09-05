@@ -1,4 +1,26 @@
+Anotações sobre o Guitarpédia:
+
+Conceitos:
+
+Altura do Som:
+	Agudo: Som alto, fino.
+	Grave: Som baixo, forte. 
 Timbre: Qualidade sonora.
+Intensidade: Propridade do som ser forte ou fraco.
+
+Notas: 
+
+A - Lá
+B - Si
+C - Dó
+D - Ré
+E - Mi
+F - Fá
+G - Sol
+
+<- Mais grave                              Mais agudo ->
+C - Dó/D - Ré/E - Mi/F - Fá/G - Sol/A - Lá/B - Si/C - Dó
+
 
 
 Basicamente há quatro modelos de guitarras:
@@ -8,6 +30,7 @@ Guitarra Acústica - Com uma grande caixa como se fosse um violão
 Telecaster/Statrocaster - Mais versátil, criado pelo Leo Fender (Country)
 Lespaul/SG - Mais grave, criado pela Gibson (blues, jazz)
 SuperStatro/Rock guitar/Guitar R - Mistura de Statro com som limpo e Les paul quando distorcido
+
 
 
 Partes da Guitarra:
@@ -20,7 +43,6 @@ Braço, Pestana, Traste, Casa(Divisão das notas), Marcações/Bolinhas, Tensor(Inte
 
 Corpo/Body:
 Ponte (Fixa, Tremolo, Flutuante), Captador (Simples/Single coil , Duplo/Humbucker), Chave seletora (Braço/Neck Pickup, Meio/Middle Pickup, Ponte/Brigde Pickup - Seleciona o captador ativo no momento, Serve pra mudar o Timbre), Botão de Volume (Consegue mudar o timbre), Botão de Tone (Tonalidade, Cortar os agudos, Pra inicio a melhor configuração é tudo no máximo), Jack de Entrada/Input Jack (Onde coloca o cabo, quando tirar o cabo desligar primeiro o amp e depois o cabo), Escudo,  Alavanca (Abaixa ou Subir afinação da nota)
-
 
 Itens para adiquirir futuramente (Ordem de importancia): 
 
@@ -42,6 +64,69 @@ Pedestal para instrumento - Guardar
 Ferramentas para pequenos repados - Chaves Phillips ou Allen
 
 
+
+Afinar:
+
+Nota baixa = Mais grave
+Nota alta = Mais aguda
+
+Cordas (Ordem - Cima pra baixo)
+
+6° E - Mi (Grave)
+5° A - Lá
+4° D - Ré
+3° G - Sol
+2° B - Si
+1° e - Mi (Agudo)
+
+Formas de Afinar a Guitarra:
+
+Afinador Eletrônico - Onde se toca a corda e ele indica qual a nota está (Iniciante).
+Diapasão de Sopro - Toca nota a nota
+Diapasão de Garfo - Baseado em uma única nota
+Harmônicos - Baseado nas tecnicas dos Harmônicos
+
+
+
+Harmonia e Melodia:
+
+Nota Musical: Som; Vibração de onda sonora de frequencia/altura específica.
+Acorde: Execução de várias notas ao mesmo tempo. Existem diversas organizações/estruturas de acordes:
+	Maiores, menores, diminutos, etc..
+Melodia: Sucessão de notas
+Harmonia/Base/Acompanhamento: Sucessão de acordes
+
+Instrumentos que não conseguem executar acorde / harmonia são chamados de instrumentos 
+MELÓDICOS, como: Saxofone, flauta, oboé, voz humana.
+
+Responsabilidade das Mãos:
+
+Mão Esquerda:
+Escolha das notas ou acordes.
+Responsável por tecnicas como: Ligado, Bend, etc.
+
+Mão Direita:
+Escolha corda que vai tocar
+Definir o ritmo
+Atacar o acorde com todas as acordas juntas ou uma a uma
+Abafar as cordas
+Definir a intensidade
+
+
+Técnica Básica:
+Mão direita entre o bridge pickup e o neck pickup.
+Não tencionar as costas
+
+Mão esquerda, principal, apoio do polegar, traz do
+braço no meio, nas tecnicas de bend o polegar
+vai pra cima pra apoiar mais.
+Apertar sempre proximo ao traste.
+
+
+Exercício:
+
+1, 2, 3, 4 - Palhetar 4 vezes em um corda colocando os dedos
+nas casas sequencialmente.
 
 
 
