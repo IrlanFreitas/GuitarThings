@@ -182,15 +182,40 @@ Dedo 1/Casa 3, Corda solta 0
 Velocidades utilizadas:
 75bpm, 95bpm, 115bpm
 
-Como ler TAB(Tablatura)
 
-Notação Musical: Forma de Escrita para Registro/Leitura de uma música
+Como ler TAB(Tablatura):
+
+Notação Musical: Forma de Escrita para Registro/Leitura de uma música simples para instrumentos de corda, desmonstrando que casa se deve apertar, não demonstra divisão ritmica, instensidade, tempo.
+
+Formada por 6 linhas onde cada uma indica uma linha do violão/guitarra, da 1° e (Agudo) a 6° E (Grave) de cima pra baixo.
+
+Sobre cada linha é adicionado um numero que indica a casa que se deve apertar.
+
+0 - Indica tocar a corda solta.
 
 
+Cifras:
+
+Adotar uma letra do alfabeto romano para cada nota musical.
+A cifra também representa o acorde maior.
+Países de origem anglo-saxonica:
+Cmajor - Acorde de dó maior
+C(ci) - Nota Dó
+
+DO RE MI FA SOL LA SI - Nota
+C  D  E  F  G   A  B  - Cifra
 
 
+Acordes:
 
+Música >> Simplificadas >> Fase I
+Para achar outras músicas de forma simplificada 
+e com os acordes E e A.
 
+Música simplificada Flores - Titâns
+
+Acordes dá música,
+E(Mi) Maior, A (Lá) Maior.
 
 
 
