@@ -1,7 +1,7 @@
-Anotações sobre o Guitarpédia:
+AnotaÃ§Ãµes sobre o GuitarpÃ©dia:
 
 Montando forma de Estudos,
-Exercícios de dedos, alogamento e contração, 
+ExercÃ©cios de dedos, alogamento e contraÃ§Ã£o, 
 Estudo de acordes maiores e menores.
 
 
@@ -15,24 +15,24 @@ Intensidade: Propridade do som ser forte ou fraco.
 
 Notas: 
 
-A - Lá
+A - LÃ¡
 B - Si
-C - Dó
-D - Ré
+C - DÃ³
+D - RÃ©
 E - Mi
-F - Fá
+F - FÃ¡
 G - Sol
 
 <- Mais grave                              Mais agudo ->
-C - Dó/D - Ré/E - Mi/F - Fá/G - Sol/A - Lá/B - Si/C - Dó
+C - DÃ³/D - RÃ©/E - Mi/F - FÃ¡/G - Sol/A - LÃ¡/B - Si/C - DÃ³
 
 
 
-Basicamente há quatro modelos de guitarras:
+Basicamente hÃ¡ cinco modelos de guitarras:
 
-Guitarra Semi Acústica - Primeiras guitarras produzidas. (Jazz/Blues)
-Guitarra Acústica - Com uma grande caixa como se fosse um violão
-Telecaster/Statrocaster - Mais versátil, criado pelo Leo Fender (Country)
+Guitarra Semi AcÃºstica - Primeiras guitarras produzidas. (Jazz/Blues)
+Guitarra AcÃºstica - Com uma grande caixa como se fosse um violÃ£o
+Telecaster/Statrocaster - Mais versÃ¡til, criado pelo Leo Fender (Country)
 Lespaul/SG - Mais grave, criado pela Gibson (blues, jazz)
 SuperStatro/Rock guitar/Guitar R - Mistura de Statro com som limpo e Les paul quando distorcido
 
@@ -40,30 +40,36 @@ SuperStatro/Rock guitar/Guitar R - Mistura de Statro com som limpo e Les paul qu
 
 Partes da Guitarra:
 
-Mão/Paleta/Headstock:
-Mão/Headstock, Tarracha (Onde apertam as cordas), Abaixador de Cordas/Asa de Gaivota, Tensor (Ferro que passa por dentro do braço para manter estável)
+MÃ£o/Paleta/Headstock:
+MÃ£o/Headstock, Tarracha (Onde apertam as cordas), Abaixador de Cordas/Asa de Gaivota, 
+Tensor (Ferro que passa por dentro do braÃ§o para manter estÃ¡vel)
 
-Braço/Neck:
-Braço, Pestana, Traste, Casa(Divisão das notas), Marcações/Bolinhas, Tensor(Interno)
+BraÃ§o/Neck:
+BraÃ§o, Pestana, Traste, Casa (DivisÃ£o das notas), MarcaÃ§Ãµes/Bolinhas, Tensor(Interno)
 
 Corpo/Body:
-Ponte (Fixa, Tremolo, Flutuante), Captador (Simples/Single coil , Duplo/Humbucker), Chave seletora (Braço/Neck Pickup, Meio/Middle Pickup, Ponte/Brigde Pickup - Seleciona o captador ativo no momento, Serve pra mudar o Timbre), Botão de Volume (Consegue mudar o timbre), Botão de Tone (Tonalidade, Cortar os agudos, Pra inicio a melhor configuração é tudo no máximo), Jack de Entrada/Input Jack (Onde coloca o cabo, quando tirar o cabo desligar primeiro o amp e depois o cabo), Escudo,  Alavanca (Abaixa ou Subir afinação da nota)
+Ponte (Fixa, Tremolo, Flutuante), Captador (Simples/Single coil , Duplo/Humbucker), 
+Chave seletora (BraÃ§o/Neck Pickup, Meio/Middle Pickup, Ponte/Brigde Pickup - Seleciona o captador ativo no momento, Serve pra mudar o Timbre), 
+BotÃ£o de Volume (Consegue mudar o timbre), BotÃ£o de Tone (Tonalidade, Cortar os agudos, Pra inicio a melhor configuraÃ§Ã£o Ã© tudo no mÃ¡ximo), 
+Jack de Entrada/Input Jack (Onde coloca o cabo, quando tirar o cabo desligar primeiro o amp e depois o cabo), Escudo,  Alavanca (Abaixa ou Subir afinaÃ§Ã£o da nota)
 
 Itens para adiquirir futuramente (Ordem de importancia): 
 
 Guitarra
-Cabo - 3 metros e não gastar muito, qualidade razoável
-Amplificador/Combo/Caixa - Ou ligar no computador, tomar cuidado com potencia um de 10w ou 20w é suficiente pra casa, pra ensaiar 25w ou 40w é suficiente. Com dois canais, ou com opção de "distorção", 2 canais, canal limpo(clean) e outro canal sujo (high gain).
+Cabo - 3 metros e nÃ£o gastar muito, qualidade razoÃ¡vel
+Amplificador/Combo/Caixa - Ou ligar no computador, tomar cuidado com potencia um de 10w ou 20w Ã© suficiente pra casa,
+pra ensaiar 25w ou 40w Ã© suficiente. 
+Com dois canais, ou com opÃ§Ã£o de "distorÃ§Ã£o", 2 canais, canal limpo(clean) e outro canal sujo (high gain).
 Pedais, Pedaleira - Mudar o som da guitarra.
 Afinador
 
 Palheta - De diferentes materias e tamanhos
-Afinador Eletrônico - (Celular)
+Afinador EletrÃ©nico - (Celular)
 Jogo de cordas "extras"
 Capa/case de guitarra - Guardar, transportar a guitarra
-Correia - Tocar em pé
-Metrônomo - (Celular) Auxiliar para tocar no tempo certo
-Caderno de mùsica - Anotações
+Correia - Tocar em pÃ©
+MetrÃ´nomo - (Celular) Auxiliar para tocar no tempo certo
+Caderno de mÃºsica - AnotaÃ§Ãµes
 Estante de Partitura
 Pedestal para instrumento - Guardar
 Ferramentas para pequenos repados - Chaves Phillips ou Allen
@@ -77,40 +83,40 @@ Nota alta = Mais aguda
 
 Cordas (Ordem - Cima pra baixo)
 
-6° E - Mi (Grave)
-5° A - Lá
-4° D - Ré
-3° G - Sol
-2° B - Si
-1° e - Mi (Agudo)
+6Â° E - Mi (Grave)
+5Â° A - LÃ¡
+4Â° D - RÃ©
+3Â° G - Sol
+2Â° B - Si
+1Â° e - Mi (Agudo)
 
 Formas de Afinar a Guitarra:
 
-Afinador Eletrônico - Onde se toca a corda e ele indica qual a nota está (Iniciante).
-Diapasão de Sopro - Toca nota a nota
-Diapasão de Garfo - Baseado em uma única nota
-Harmônicos - Baseado nas tecnicas dos Harmônicos
+Afinador EletrÃ´nico - Onde se toca a corda e ele indica qual a nota esta (Iniciante).
+DiapasÃ£o de Sopro - Toca nota a nota
+DiapasÃ£o de Garfo - Baseado em uma Ãºnica nota
+HarmÃ´nicos - Baseado nas tecnicas dos HarmÃ´nicos
 
 
 
 Harmonia e Melodia:
 
-Nota Musical: Som; Vibração de onda sonora de frequencia/altura específica.
-Acorde: Execução de várias notas ao mesmo tempo. Existem diversas organizações/estruturas de acordes:
+Nota Musical: Som; VibraÃ§Ã£o de onda sonora de frequencia/altura especÃ­fica.
+Acorde: ExecuÃ§Ã£o de vÃ¡rias notas ao mesmo tempo. Existem diversas organizaÃ§Ãµes/estruturas de acordes:
 	Maiores, menores, diminutos, etc..
-Melodia: Sucessão de notas
-Harmonia/Base/Acompanhamento: Sucessão de acordes
+Melodia: SucessÃ£o de notas
+Harmonia/Base/Acompanhamento: SucessÃ£o de acordes
 
-Instrumentos que não conseguem executar acorde / harmonia são chamados de instrumentos 
-MELÓDICOS, como: Saxofone, flauta, oboé, voz humana.
+Instrumentos que nÃ£o conseguem executar acorde / harmonia sÃ£o chamados de instrumentos 
+MELÃ“DICOS, como: Saxofone, flauta, OboÃ©, voz humana.
 
-Responsabilidade das Mãos:
+Responsabilidade das MÃ£os:
 
-Mão Esquerda:
+MÃ£o Esquerda:
 Escolha das notas ou acordes.
-Responsável por tecnicas como: Ligado, Bend, etc.
+ResponsÃ¡vel por tecnicas como: Ligado, Bend, etc.
 
-Mão Direita:
+MÃ£o Direita:
 Escolha corda que vai tocar
 Definir o ritmo
 Atacar o acorde com todas as acordas juntas ou uma a uma
@@ -118,17 +124,17 @@ Abafar as cordas
 Definir a intensidade
 
 
-Técnica Básica:
-Mão direita entre o bridge pickup e o neck pickup.
-Não tencionar as costas
+TÃ©cnica BÃ¡sica:
+MÃ£o direita entre o bridge pickup e o neck pickup.
+NÃ£o tencionar as costas
 
-Mão esquerda, principal, apoio do polegar, traz do
-braço no meio, nas tecnicas de bend o polegar
+MÃ£o esquerda, principal, apoio do polegar, traz do
+braÃ§o no meio, nas tecnicas de bend o polegar
 vai pra cima pra apoiar mais.
 Apertar sempre proximo ao traste.
 
 
-Exercício:
+ExercÃ­cio:
 
 1, 2, 3, 4 - Palhetar 4 vezes em um corda colocando os dedos
 nas casas sequencialmente.
@@ -136,18 +142,18 @@ nas casas sequencialmente.
 
 Primeira Melodia #01
 
-INTRODUÇÃO DE SMOKE ON THE WATER.
+INTRODUÃ‡Ã£O DE SMOKE ON THE WATER.
 
 Usando somente a terceira corda G, e palhetando para baixo
 
 Casas na corda G
-1° Parte
+1Â° Parte
 Corda solta 0, Dedo 1/Casa 3, Dedo 3/Casa 5
-2° Parte
+2Â° Parte
 Corda solta 0, Dedo 1/Casa 3, Dedo 4/Casa 6, Dedo 3/Casa 5
-3° Parte
+3Â° Parte
 Corda solta 0, Dedo 1/Casa 3, Dedo 3/Casa 5
-4° Parte
+4Â° Parte
 Dedo 1/Casa 3, Corda solta 0
 
 Como estudar Riff:
@@ -157,26 +163,26 @@ Repetindo inumeras vezes
 Primeira Melodia #02
 
 Usando o metronomo para aumentar ou diminuir a velocidade
-de que se é tocada.
+de que se Ã© tocada.
 
 Velocidades utilizadas:
 75bpm, 95bpm, 115bpm
 
 Primeira Melodia #03
 
-Riff não simplificado
-Serão utilizadas 2 cordas a 3°-G e a 4°-D
+Riff nÃ£o simplificado
+SerÃ£o utilizadas 2 cordas a 3Â°-G e a 4Â°-D
 
 Casas na corda G e D (Mesmo tempo)
-1° Parte
+1Â° Parte
 Corda solta 0, Dedo 1/Casa 3, Dedo 3/Casa 5
 Corda solta 0, Dedo 2/Casa 3, Dedo 2/Casa 5
-2° Parte
+2Â° Parte
 Corda solta 0, Dedo 1/Casa 3, Dedo 1/Casa 6, Dedo 1/Casa 5
 Corda solta 0, Dedo 2/Casa 3, Dedo 2/Casa 6, Dedo 2/Casa 5
-3° Parte
+3Â° Parte
 Corda solta 0, Dedo 1/Casa 3, Dedo 3/Casa 5
-4° Parte
+4Â° Parte
 Dedo 1/Casa 3, Corda solta 0
 
 Velocidades utilizadas:
@@ -185,11 +191,12 @@ Velocidades utilizadas:
 
 Como ler TAB(Tablatura):
 
-Notação Musical: Forma de Escrita para Registro/Leitura de uma música simples para instrumentos de corda, desmonstrando que casa se deve apertar, não demonstra divisão ritmica, instensidade, tempo.
+NotaÃ§Ã£o Musical: Forma de Escrita para Registro/Leitura de uma mÃºsica simples para instrumentos de corda, 
+desmonstrando que casa se deve apertar, nÃ£o demonstra divisÃ£o ritmica, instensidade, tempo.
 
-Formada por 6 linhas onde cada uma indica uma linha do violão/guitarra, da 1° e (Agudo) a 6° E (Grave) de cima pra baixo.
+Formada por 6 linhas onde cada uma indica uma linha do violÃ£o/guitarra, da 1Â° e (Agudo) a 6Â° E (Grave) de cima pra baixo.
 
-Sobre cada linha é adicionado um numero que indica a casa que se deve apertar.
+Sobre cada linha Ã© adicionado um numero que indica a casa que se deve apertar.
 
 0 - Indica tocar a corda solta.
 
@@ -197,10 +204,10 @@ Sobre cada linha é adicionado um numero que indica a casa que se deve apertar.
 Cifras:
 
 Adotar uma letra do alfabeto romano para cada nota musical.
-A cifra também representa o acorde maior.
-Países de origem anglo-saxonica:
-Cmajor - Acorde de dó maior
-C(ci) - Nota Dó
+A cifra tambÃ©m representa o acorde maior.
+PaÃ­ses de origem anglo-saxonica:
+Cmajor - Acorde de DÃ³ maior
+C(ci) - Nota DÃ³
 
 DO RE MI FA SOL LA SI - Nota
 C  D  E  F  G   A  B  - Cifra
@@ -208,20 +215,20 @@ C  D  E  F  G   A  B  - Cifra
 
 Acordes:
 
-Música >> Simplificadas >> Fase I
-Para achar outras músicas de forma simplificada 
+MÃºsica >> Simplificadas >> Fase I
+Para achar outras mÃºsicas de forma simplificada 
 e com os acordes E e A.
 
-Música simplificadas 
+MÃºsica simplificadas 
 
-Flores - Titâns
+Flores - TitÃ£s
 
-Acordes dá música,
-E(Mi) Maior, A (Lá) Maior.
+Acordes da mÃºsica,
+E(Mi) Maior, A (LÃ¡) Maior.
 
 Batida:
 Baixo, Cima, Baixo. x4 para cada acorde
-Depois do refrão é x2 para cada acorde.
+Depois do refrÃ£o Ã© x2 para cada acorde.
 
 TNT - AC/DC
 Baixo, Cima, Baixo. x2
@@ -229,87 +236,167 @@ Detalhe
 
 Como ler "bracinho"?
 
-A guitarra é indicada na vertical. Headstock pra cima.
+A guitarra Ã© indicada na vertical. Headstock pra cima.
 Mais a esquerda cordas mais graves e a direita mais agudas.
 
 Linhas horizontais representam os trastes, e assim delimitam
-as casas, e quando são muito agudos(casas mais proximas ao
+as casas, e quando sÃ£o muito agudos(casas mais proximas ao
 corpo da guitarra), aparecem numeros romanos XII(casa 12),
 Bolinhas indicam as cordas e o numeros os dedos que devem 
 tocar a linha.
 
 Bolinhas pretas e x's - Sinais que indicam acordes que batida/groove,
 bola preta significa o inicio de onde se deve tocar.
-X indica as cordas que não se deve tocar.
+X indica as cordas que nÃ£o se deve tocar.
 
 
-Dúvidas:
-Qual a forma de saber o tempo da levada/batida, que tipo de anotação é utilizada?
+DÃºvidas:
+Qual a forma de saber o tempo da levada/batida, que tipo de anotaÃ§Ã£o Ã© utilizada?
 tablatura
 
 
-Afinação: Curiosidades
+AfinaÃ§Ã£o: Curiosidades
 
-EACGBE - Porque é desta forma e não CDEFGAB ?
+EACGBE - Porque Ã© desta forma e nÃ£o CDEFGAB ?
 Resposta um pouco vaga,
-Padrão adotado nos instrumentos de 
-corda, baixo, bandolim, com outros padrões.
+PadrÃ£o adotado nos instrumentos de 
+corda, baixo, bandolim, com outros padrÃµes.
 
 
-Segunda Música Simplificada:
+Segunda MÃºsica Simplificada:
 
 Love Me Do - Beatles
 
-Transposição ou Transcrição - Transpor(passar) uma melodia de um instrumento para outro
-Aprendendo mais com trechos de músicas, ou melodias (notas tocadas em ordem)
+TransposiÃ§Ã£o ou TranscriÃ§Ã£o - Transpor(passar) uma melodia de um instrumento para outro
+Aprendendo mais com trechos de mÃºsicas, ou melodias (notas tocadas em ordem)
 
 
-1° Parte
-Corda 2°(B/Si)-Dedo 4-6° Casa-(Nota F),
-Corda 2°(B/Si)-Dedo 3-5° Casa-(Nota E),
-Corda 2°(B/Si)-Dedo 1-3° Casa-(Nota D),
-Corda 3°(G/Sol)- 0 (Solta) x2,
+1Â° Parte
+Corda 2Â°(B/Si)-Dedo 4-6Â° Casa-(Nota F),
+Corda 2Â°(B/Si)-Dedo 3-5Â° Casa-(Nota E),
+Corda 2Â°(B/Si)-Dedo 1-3Â° Casa-(Nota D),
+Corda 3Â°(G/Sol)- 0 (Solta) x2,
 
-2° Parte
-Corda 2°(B/Si)-Dedo 4-6° Casa-(Nota F) x3,
-Corda 2°(B/Si)-Dedo 3-5° Casa-(Nota E) x3,
-Corda 2°(B/Si)-Dedo 1-3° Casa-(Nota D) x1,
-Corda 3°(G/Sol)- 0 (Solta) x2,
+2Â° Parte
+Corda 2Â°(B/Si)-Dedo 4-6Â° Casa-(Nota F) x3,
+Corda 2Â°(B/Si)-Dedo 3-5Â° Casa-(Nota E) x3,
+Corda 2Â°(B/Si)-Dedo 1-3Â° Casa-(Nota D) x1,
+Corda 3Â°(G/Sol)- 0 (Solta) x2,
 
-Corda 2°(B/Si)-Dedo 4-6° Casa-(Nota F),
-Corda 2°(B/Si)-Dedo 3-5° Casa-(Nota E),
-Corda 2°(B/Si)-Dedo 1-3° Casa-(Nota D),
-Corda 3°(G/Sol)- 0 (Solta) x2 - (Nota G),
+Corda 2Â°(B/Si)-Dedo 4-6Â° Casa-(Nota F),
+Corda 2Â°(B/Si)-Dedo 3-5Â° Casa-(Nota E),
+Corda 2Â°(B/Si)-Dedo 1-3Â° Casa-(Nota D),
+Corda 3Â°(G/Sol)- 0 (Solta) x2 - (Nota G),
 
-3° Parte
-Corda 3°(G/Sol)-Dedo 2-5° Casa-(Nota C),
-Corda 3°(G/Sol)-Dedo 1-4° Casa-(Nota B),
-Corda 3°(G/Sol)- 0 (Solta) x5 - Tentando memorizar pela rítmica da melodia
-Corda 3°(G/Sol)-Dedo 2-5° Casa-(Nota C),
-Corda 3°(G/Sol)-Dedo 1-4° Casa-(Nota B),
-Corda 3°(G/Sol)- 0 (Solta) x1
+3Â° Parte
+Corda 3Â°(G/Sol)-Dedo 2-5Â° Casa-(Nota C),
+Corda 3Â°(G/Sol)-Dedo 1-4Â° Casa-(Nota B),
+Corda 3Â°(G/Sol)- 0 (Solta) x5 - Tentando memorizar pela rÂ°tmica da melodia
+Corda 3Â°(G/Sol)-Dedo 2-5Â° Casa-(Nota C),
+Corda 3Â°(G/Sol)-Dedo 1-4Â° Casa-(Nota B),
+Corda 3Â°(G/Sol)- 0 (Solta) x1
 
 
 Acordes FASE II
 
-Terceiro acorde a ser aprendi o RÉ MAIOR - D
-Que somado os anteriores, E(Mi Maior) e A(Lá Maior)
-Aumenta a gama de músicas a serem todacas.
+Terceiro acorde a ser aprendi o RÃ© MAIOR - D
+Que somado os anteriores, E(Mi Maior) e A(LÃ¡ Maior)
+Aumenta a gama de mÃºsicas a serem todacas.
 
-Tocada apartir da quarta corda D (Ré Maior)
+Tocada apartir da quarta corda D (RÃ© Maior)
 Casa 2, Dedo 1, Terceira corda G (Sol Maior)
 Casa 2, Dedo 2, Primeira corda e (Mi Agudo)
 Casa 3, Dedo 3, Segunda corda B (Si Maior)
 
-Música >> Simplificadas >> Fase II
+MÂ°sica >> Simplificadas >> Fase II
 
-Música Simplificada - Beatles Twist and Shout
+MÂ°sica Simplificada - Beatles Twist and Shout
 
 Acordes - D, A
 Batida: 
 Baixo, Cima, Baixo. x2 - Cada acorde
+Depois do solo
+Na parte o Awwhh Awwhh Awwhh Awwhh (permanece no A) x6
 
 
+Levada I
+
+Levada/Groove/Batida - Ã© o que dÃ¡ ritmo a mÃºsica
+Base ritmica
+
+Pop Rock 1 - Nome Guitarpedia
+
+Levada Generica que Ã© modificada quando necessÃ¡rio
+
+Solfejado - TÃ¡ tatÃ¡ tatÃ¡, TÃ¡ tatÃ¡ tatÃ¡, TÃ¡ tatÃ¡ tatÃ¡..
+
+Batida:
+Baixo, Baixo - Cima,  Cima - Baixo
+
+Dica:
+Manter o movimento da mÃ£o linear
+Sempre se movimentando
+Conduzindo o tempo da mÃºsica
+Relaxar a mÃ£o
+Deixar o movimento natural
+
+Aplicar nas mÃºsicas de Rock e Pop, 
+Aplicar nas mÃºsicas de Fase I e II
+(Mudando as batidas por conta do tempo de
+cada uma, diminuindo pela metade)
 
 
+Powerchords ou Bicordes:
+
+O que sÃ£o:
+SimplificaÃ§Ãµes de acordes.
+Geralmente o dedo 1, que manda/indica
+qual o acorde Ã© o Powerchord
+
+Quando usamos:
+Usado em distorÃ§Ã£o, para facilitar
+a sonoridade.
+
+Powerchord de G:
+Dedo 1, Casa 3, 6Â° Corda, Nota G (TÃ´nica - Primeira nota da escala)
+Dedo 3, Casa 5, 5Â° Corda, Nota D (5Â° - Nota da escala)
+Dedo 4, Casa 5, 4Â° Corda, Nota G (TÃ´nica)
+
+Powerchord de F:
+Dedo 1, Casa 1, 6Â° Corda, Nota G (TÃ´nica - Primeira nota da escala)
+Dedo 3, Casa 3, 5Â° Corda, Nota D (5Â° - Nota da escala)
+Dedo 4, Casa 3, 4Â° Corda, Nota G (TÃ´nica)
+
+Powerchord de C:
+Dedo 1, Casa 3, 5Â° Corda, Nota C (TÃ´nica - Primeira nota da escala)
+Dedo 3, Casa 5, 4Â° Corda, Nota G (5Â° - Nota da escala)
+Dedo 4, Casa 5, 3Â° Corda, Nota C (TÃ´nica)
+
+Powerchord de La bemol (L# ou Lb):
+Dedo 1, Casa 4, 6Â° Corda, Nota C (TÃ´nica - Primeira nota da escala)
+Dedo 3, Casa 6, 5Â° Corda, Nota G (5Â° - Nota da escala)
+Dedo 4, Casa 6, 4Â° Corda, Nota C (TÃ´nica)
+
+Tocar somente as cordas com os dedos as tres cordas
+
+Aplicando na mÃºsica, Smoke on the water - Simplificada, 
+
+1Â° Parte
+x8 a batida
+Powerchord G, primeiras x5 
+Powerchord F, x6Â°
+Powerchord G, 7Â° e 8Â°
+
+Batida:
+Baixo, Baixo, Baixo
+
+RefrÃ£o
+Powerchord C
+Powerchord L#
+Powerchord G x2
+
+Batida:
+Uma vez e deixar soar a nota,
+4 Tempos cada, 
+Segunda vez, vai para o Riff da mÃºsica
 
