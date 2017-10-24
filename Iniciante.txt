@@ -299,7 +299,7 @@ Corda 3°(G/Sol)- 0 (Solta) x1
 
 Acordes FASE II
 
-Terceiro acorde a ser aprendi o Ré MAIOR - D
+Terceiro acorde a ser aprendi o D (Ré Maior)
 Que somado os anteriores, E(Mi Maior) e A(Lá Maior)
 Aumenta a gama de músicas a serem todacas.
 
@@ -399,4 +399,70 @@ Batida:
 Uma vez e deixar soar a nota,
 4 Tempos cada, 
 Segunda vez, vai para o Riff da música
+
+Base solo:
+x8 a batida
+Powerchord G, primeiras x4 
+Powerchord F, x5° e 6°
+Powerchord G, 7° e 8°
+
+
+Cifragem de Acordes:
+
+# : Sustenido
+b : Bemol
+m ou (-) ou min : Menor
+Maior - Sem nada ao lado da cifra
+numeros sempre em singular no feminino
+D6 - ré maior com sexta
+E8 - mi maior com oitava
+ou os numeros com parenteses
+Db7(9) - ré bemol maior com sétima e nona
+
+Exercícios:
+F#m - Fá sustenido menor
+E7 - mi com sétima
+Bb6 - si bemol com sexta
+Am7 - lá menor com sétima
+C#m13 - do sustenido menor com décima terceira
+Db9 - ré bemol com nona
+G13 - sol com décima terceira
+C7(9) - dó com sétima e nona
+Ebm11 - mi bemol menor com décima primeiras
+G#7 - sol sustenido com sétima
+Fm9 - fá menor com nona
+B - si maior
+Abm - lá bemol menor
+
+Técnica
+
+Exercício Um Dois Tres Quatro ou Exercício cromatico
+Ganho de coordenação e sincronismo.
+
+Palhetada Alternada.
+
+Corda 6 (E), Casa 5, Dedo 1, Nota Lá
+Corda 6 (E), Casa 6, Dedo 2, Nota Lá
+Corda 6 (E), Casa 7, Dedo 3, Nota Lá
+Corda 6 (E), Casa 8, Dedo 4, Nota Lá
+
+Ir descendo as cordas...
+
+
+Importancia da Partitura: Contém informações importantes como,
+Notas, tempo, andamento, interpretação, até descobrir o tom da música.
+Forma padrão e universal para todos os instrumentos.
+
+
+Acordes FASE III 
+
+Acordes que serão aprendido aqui:
+G(Sol maior) e C9 (Dó com nona)
+
+Acorde C9
+Tocada apartir da quarta corda A (Lá Maior)
+Casa 3, Dedo 2, Quinta corda A (Lá Maior)
+Casa 2, Dedo 1, quarta corda D (Ré Agudo)
+Casa 3, Dedo 3, Primeira corda B (Si Agudo)
+Casa 3, Dedo 4, Segunda corda e (Mi Maior Agudo)
 
