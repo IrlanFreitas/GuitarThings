@@ -466,3 +466,66 @@ Casa 2, Dedo 1, quarta corda D (Ré Agudo)
 Casa 3, Dedo 3, Primeira corda B (Si Agudo)
 Casa 3, Dedo 4, Segunda corda e (Mi Maior Agudo)
 
+Love Me Do (Simplificado)
+
+Usando a levada Pop Rock I
+
+Tonalidade Gm (Sol menor)
+
+Primeira parte:
+Alteranando entre G e C9 com uma vez nada levada
+
+Segunda parte:
+Alteranando entre D, G e C9 com 2 vezes para D e uma para G e C9
+
+
+Sustenido e Bemol
+
+Notas naturais: C D E F G A B  
+Sinais de alteração #(Sustenido) e b(Bemol) são chamados de acidentes:
+E(Mi) e B(Si) não existem sustenidos.
+F(Fá) e C(Dó) não existem benois.
+
+Tom e meio tom/semitom:
+Tom:
+Semitom:
+
+A distância das notas como: DO -> DO# -> RE -> RE# -> MI -> FÁ 
+A distância entre cada nota é de 1/2 Tom (Ou Semitom)
+
+A distância das notas como: DO -> RE -> MI -> FÁ# 
+A distância entre cada nota é de 1 Tom 
+
+Com essa informação é possível calcular a distância (quantidade de tons) entre cada nota
+
+exercício:
+
+D(Ré) e F(Fá): 2Tons e 1/2Tons
+Sol(G) e Ab(Lá Bemol): 1/2Tons
+E(Mi) e G#(Sol Sustenido): 2Tons
+A(Lá) e C#(Dó sustenido): 2Tons
+B(Si) e Db(Ré Bemol): 1Tons
+F(Fá) e Bb(Si Bemol): 2Tons e 1/2Tons
+
+A nota D(Ré) está 1 Tom ACIMA da notá C(Dó).
+A nota G(Sol) está 2 Tons ABAIXO da nota B(Sí).
+A nota A(Lá) está 2 TONS ACIMA da nota F(Fá)
+A nota E(Mi) está 2 TONS Abaixo da nota G#(Sol Sustenido).
+A nota B(Si) está 3 TONS E 1/2 ACIMA da nota E(Mi)
+A nota Eb (Mi Bemol) está 1Tom e 1/2 ACIMA da nota C(Dó)
+
+Semitom Cromático:
+
+Acontece tem uma distância de 1/2 Tom porem com o mesmo nome de origem;
+Exemplo:
+DO -> DO# -> RE -> RE#
+
+Semitom Diatônico:
+
+Acontece tem uma distância de 1/2 Tom porem não com o mesmo nome de origem;
+Exemplo:
+MI -> FÁ
+DO -> Reb -> Re: Semitom Diatônico do Dó pro Ré bemol
+SOL -> Lab
+
+Acidentes ou Sinais de Alteração: Sustenido (#) e Bemol(b)
