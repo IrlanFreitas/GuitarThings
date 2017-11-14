@@ -522,7 +522,7 @@ DO -> DO# -> RE -> RE#
 
 Semitom Diatônico:
 
-Acontece tem uma distância de 1/2 Tom porem não com o mesmo nome de origem;
+Acontece quando tem uma distância de 1/2 Tom porem não com o mesmo nome de origem;
 Exemplo:
 MI -> FÁ
 DO -> Reb -> Re: Semitom Diatônico do Dó pro Ré bemol

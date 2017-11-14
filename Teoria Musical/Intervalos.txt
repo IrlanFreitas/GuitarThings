@@ -1,0 +1,94 @@
+Referência: https://youtu.be/x-HkUeOWGLY
+
+
+
+Intevalos:
+
+Simples: {
+
+    Classificação numerica para identificar a relação(distância) entre duas notas.
+    Importantes para compreender os acordes, cifras e escalas.
+
+    Escala Natural: 
+    DO - RE - MI - FA - SOL - LA - SI
+    1° - 2° - 3° - 4° -  5° - 6° - 7° 
+    (Imagem aqui)
+
+    Entre o DO e o RE temos o intervalo de 2°(Segunda), pois, o RE é a segunda nota
+    a partir do DO.
+
+    Entre o DO e o MI tempos o intervalo de 3°(Terça) pois, o MI é a terceira nota
+    a partir do DO.
+
+    Entre o DO e o FA, intervalo de 4°(Quarta).
+
+    Entre o DO e o SOL, intervalo de 5°(Quinta).
+
+    DO e LA, intervalo de 6°(Sexta).
+
+    DO e SI, intervalo de 7°(Sétima).
+
+    Após a nota SI temos novamente a nota DO, iniciando a mesma escala numa região
+    mais aguda e antes da nota DO temos novamente a nota SI, finalizando a mesma
+    escala no região mais grave.
+
+}
+
+Compostos: {
+
+    Entre a nota DO e a nota DO que está um pouco acima (Mais grave), temos o intervalo
+    de Oitava, assim é chamado de Intervalos compostos.
+    (Imagem aqui)
+
+    DO - RE - MI - FA - SOL - LA - SI | DO - RE -  MI -  FA - SOL - LA  - SI
+    1° - 2° - 3° - 4° -  5° - 6° - 7° | 8° - 9° - 10° - 11° - 12° - 13° - 14° 
+        Intervalos Simples                 Intervalos Compostos
+
+    Entre o DO e RE que encontra acima do proximo DO teremos um intervalo de 9°
+    que é uma Oitava do intervalo de 2°(Segunda).
+
+    Entre o DO e MI que está acima do proximo DO teremos um intervalo de 10°,
+    que é uma Oivata do intervalo de 3°(Terça).
+
+    Seguindo o raciocínio...
+
+    Entre o DO e o FA (Uma Oitava acima),
+    Intervalo de 11° que é a Oivata da 4°(Quarta).
+
+    Entre o DO e o SOL (Uma Oitava acima),
+    Intervalo de 12° que é a Oivata da 5°(Quinta).
+
+    Entre o DO e o LA (Uma Oitava acima),
+    Intervalo de 13° que é a Oivata da 6°(Sexta).
+
+    Entre o DO e o SI (Uma Oitava acima),
+    Intervalo de 14° que é a Oivata da 7°(Sexta).
+
+
+    Intervalos Compostos (Uma oivata acima) Mais Importantes:
+
+    9°(Nona) - DO e RE, 11°(Décima Primeira) - DO e FA, 13°(Décima Terceira) - DO e LA.
+    Os intervalos acima são os que aparecem com mais facilidade como notas acrescentadas
+    aos acordes.
+    Os outros intervalos não são comuns de serem usados nas cifras e nas nomenclaturas
+    dos acordes, pois eles já fazem partes das estruturas básicas das TRIADES e 
+    TETRADES.
+
+}
+
+Escala Natural == Escala Diatônica: {
+
+    Como vi nos semitons, imagino que seja quando a distância entre de um tom 
+    porem não com o mesmo nome de origem:
+
+    DO - RE
+    MI - FA
+    SOL- LA
+
+    Exemplos do porque o nome é Escala Diatônica.
+}
+
+Escala Cromática: {
+
+
+}

@@ -1,0 +1,82 @@
+Observações: {
+
+    Notas como C# = Db, tem o mesmo som.
+    Na teoria musical as mesma notas recebam nomes diferentes, ou seja,
+    ela é classificada de forma diferente de acordo com o contexto da música, mas,
+    na pratica a sonoridade é a mesma.
+}
+
+
+Notas musicais:
+
+São organizadas numa escala de 7 notas (cifras):
+
+dó (C) - ré (D) - mi (E) - fá (F) - sol (G) - lá (A) - si (B)
+
+As notas acima são chamadas de escala natural.
+
+Tom: {
+
+Quando andamos 2 casas no violão corresponde a um tom ou 
+dois semitons.
+
+Exemplo {
+
+    Usado como auxilio: ./Distância Entre Notas(Intervalos).jpg
+
+    Quando estamos na 5° Corda (A) e tocamos solta a nota é o 
+    proprio lá (A), porem, quando apertamos da segunda 
+    casa, a nota é o si (B).
+
+    Primeiro por que duas casas significam um tom.
+    Segundo porque a distância de lá (A) para si (B) é de
+    um tom.
+
+}
+
+}
+
+Semitom: {
+
+Menor distância que existem entre duas notas musicais.
+Correspondem a uma casa no violão.
+
+Exemplo: {
+
+    Usado como auxilio: ./Distância Entre Notas(Intervalos).jpg
+
+    Quando estamos na 6° Corda (E) e tocamos solta a nota é o 
+    proprio mi (E), porem, quando apertamos da primeira 
+    casa, a nota é o fá (F).
+
+    Primeiro por que cada casa indica um semitom.
+    Segundo porque a distância de mi(E) para fá(F) é de
+    um semitom.
+}
+
+}
+
+Acidentes:
+
+Notas intermediárias que exitem entre as notas da escala natural,
+que são chamados Sustenidos e benois.
+
+Sustenidos (#):
+
+C, C#, D, D#, E, F, F#, G, G#, A, A#, B.
+
+Dois pontos sem os sustenidos, E(Mi) e B(Si).
+Essa escala dos sustenidos é chamado de Escala Cromática (12 notas).
+A função do Sustenido é AUMENTAR a altura da nota em meio tom.
+
+
+Benois (b):
+
+C, D, Db, E, Eb, F, G, Gb, A, Ab, B, Bb.
+
+A função do Bemol é DIMINUI a altura da nota em meio tom.
+
+
+Referência:
+
+https://youtu.be/RWRWMIXaH4k
